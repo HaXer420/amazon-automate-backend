@@ -1,0 +1,44 @@
+const cors = require('cors');
+const express = require('express');
+const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
+
+const adminRouter = require('./routes/adminRoute');
+
+dotenv.config({ path: './config.env' });
+
+const app = express();
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
+app.use(cors());
+
+app.options('*', cors());
+
+app.use(logger('dev'));
+app.use(express.json());
+
+app.use((req, res, next) => {
+  req.requestBody = new Date().toISOString();
+  next();
+});
+
+app.use(express.urlencoded({ extended: false }));
+
+app.use(cookieParser());
+
+app.use('/api/v1/admin', adminRouter);
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Couldn't fint the ${req.originalUrl} url`, 404));
+});
+
+app.use(globalErrorHandler);
+
+module.exports = app;
