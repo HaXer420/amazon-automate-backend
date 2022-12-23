@@ -37,6 +37,11 @@ const adminSchema = new mongoose.Schema(
     passwordChangedAt: {
       type: Date,
     },
+    photo: {
+      type: String,
+      default:
+        'https://res.cloudinary.com/x-haxer/image/upload/v1662200068/defaultimage_yosliq.png',
+    },
     createdAt: {
       type: Date,
       default: Date.now(),
