@@ -1,9 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
-const User = require('../models/userModel');
-const Donation = require('../models/donationModel');
-const Item = require('../models/itemModel');
+const Admin = require('../models/adminModel');
 
 exports.deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -52,14 +50,6 @@ exports.getOne = (Model, popOpt, popOpt2, popOpt3) =>
       query = query.populate(popOpt);
     }
 
-    if (popOpt2) {
-      query = query.populate(popOpt2);
-    }
-
-    if (popOpt3) {
-      query = query.populate(popOpt3);
-    }
-
     const doc = await query;
     // const doc = await Model.findById(req.params.id).populate('reviews');
 
@@ -96,75 +86,3 @@ exports.getAll = (Model) =>
       data: doc,
     });
   });
-
-exports.Aggregations = catchAsync(async (req, res, next) => {
-  const needyusers = await User.aggregate([
-    {
-      $match: { role: 'needy' },
-    },
-  ]);
-
-  const donatorusers = await User.aggregate([
-    {
-      $match: { role: 'donator' },
-    },
-  ]);
-
-  const totalitem = await Item.aggregate([
-    {
-      $match: { available: true },
-    },
-  ]);
-
-  const donation = await Donation.find().select('-__v -createdAt -user -_id');
-
-  let totaldonation = 0;
-  donation.forEach((element) => {
-    totaldonation += element.amount;
-  });
-  // console.log(totaldonation);
-
-  // let totaldonate = {};
-  // totaldonation.map((item) => {
-  //   totaldonate = +item.amount;
-  // });
-
-  // let newObj = {};
-  // Object.keys(totaldonation).forEach((el) => {
-  //   newObj[el] += totaldonation[el];
-  // });
-  // console.log(newObj);
-
-  // User.aggregate([
-  //   // {
-  //   //   $match: {
-  //   //     amount: {
-  //   //       $gte: '1',
-  //   //     },
-  //   //   },
-  //   // },
-  //   // { $group: { _id: '$amount', count: { $sum: 1 } } },
-  //   // {
-  //   //   $unwind: '$amount',
-  //   // },
-  //   // {
-  //   //   $group: {
-  //   //     _id: '$amount',
-  //   //     amount: { $push: '$amount' },
-  //   //   },
-  //   // },
-  //   // {
-  //   //   $project: {
-  //   //     total: '$totaldonations',
-  //   //   },
-  //   // },
-  // ]);
-
-  res.status(200).json({
-    message: 'Success',
-    Needy: needyusers.length,
-    Donators: donatorusers.length,
-    DonatedItems: totalitem.length,
-    Donation: totaldonation,
-  });
-});

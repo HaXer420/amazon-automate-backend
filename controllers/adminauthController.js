@@ -51,39 +51,17 @@ const signinUser = (user, statuscode, res) => {
   });
 };
 
-const signInNewUser = (user, statuscode, res) => {
-  const token = signInToken(user._id);
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
-    ),
-
-    httpOnly: true,
-  };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
-  res.cookie('jwt', token, cookieOptions);
-
-  user.password = undefined;
-
-  return token;
-};
-
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await Admin.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    passwordChangedAt: req.body.passwordChangedAt,
   });
 
-  req.token = signInNewUser(newUser._id, 201, res);
+  req.token = signinUser(newUser, 201, res);
 
-  req.user = newUser;
-
-  next();
+  req.user = newUser._id;
   // const token = signInToken(newUser._id);
 
   // res.status(201).json({
@@ -96,9 +74,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { user, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!user || !password) {
+  if (!email || !password) {
     // console.log('hi');
     return next(new AppError('Account or password is not entered', 400));
   }
@@ -106,7 +84,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // const user = await User.findOne({ email }).select('+password');
 
   const user1 = await Admin.findOne({
-    email: user,
+    email: email,
   }).select('+password');
 
   if (!user1 || !(await user1.correctPassword(password, user1.password))) {
@@ -239,7 +217,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
   // send token along with new password
 
-  signinUser(user._id, 201, res);
+  signinUser(user, 201, res);
 
   // const token = signInToken(user._id);
   // res.status(201).json({
@@ -262,5 +240,5 @@ exports.updatePass = catchAsync(async (req, res, next) => {
   await user.save();
 
   //login user
-  signinUser(user._id, 201, res);
+  signinUser(user, 201, res);
 });
