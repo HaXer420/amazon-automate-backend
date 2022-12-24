@@ -86,3 +86,22 @@ exports.getAll = (Model) =>
       data: doc,
     });
   });
+
+exports.resetPasswordGlobal = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const user = await Model.findById(req.params.id).select('+password');
+    // check if user password is correct
+    // console.log(user);
+    // if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
+    //   return next(new AppError('Your current password is incorrect!', 401));
+    // }
+    // update password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Password Changed!',
+    });
+  });

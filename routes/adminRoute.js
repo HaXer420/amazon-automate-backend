@@ -27,4 +27,13 @@ router.patch(
   AdminController.updateMe
 );
 
+// managers pass reset
+
+router.patch(
+  '/resetmanagerpass/:id',
+  AdminauthController.protect,
+  AdminauthController.restrictTo('admin'),
+  AdminController.resetPassManager
+);
+
 module.exports = router;

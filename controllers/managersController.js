@@ -1,8 +1,7 @@
-const Admin = require('../models/adminModel');
+const Manager = require('../models/managersModel');
 const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const Manager = require('../models/managersModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -27,10 +26,14 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   if (req.file) filterObject.photo = req.file.filename;
 
-  const updatedUser = await Admin.findByIdAndUpdate(req.user.id, filterObject, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedUser = await Manager.findByIdAndUpdate(
+    req.user.id,
+    filterObject,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
   res.status(200).json({
     status: 'success',
@@ -43,6 +46,20 @@ exports.getMe = (req, res, next) => {
   next();
 };
 
-exports.getUser = factory.getOne(Admin);
+exports.getprofile = catchAsync(async (req, res, next) => {
+  const doc = await Manager.findById(req.params.id).select(
+    'name email passwordChangedAt photo role'
+  );
 
-exports.resetPassManager = factory.resetPasswordGlobal(Manager);
+  // const doc = await Model.findById(req.params.id).populate('reviews');
+
+  if (!doc) {
+    // return res.status(404).json('id not found');
+    return next(new AppError('No doc found with such id'));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: doc,
+  });
+});
