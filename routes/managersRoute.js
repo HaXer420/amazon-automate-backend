@@ -34,4 +34,11 @@ router.get(
 //   AdminController.updateMe
 // );
 
+router.get(
+  '/all',
+  AdminauthController.protect,
+  AdminauthController.restrictTo('admin'),
+  ManagerController.getAllManagers
+);
+
 module.exports = router;

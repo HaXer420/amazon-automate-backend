@@ -63,3 +63,5 @@ exports.getprofile = catchAsync(async (req, res, next) => {
     data: doc,
   });
 });
+
+exports.getAllManagers = factory.getAll(Manager);
