@@ -36,4 +36,11 @@ router.patch(
   AdminController.resetPassManager
 );
 
+router.patch(
+  '/resetspecialistpass/:id',
+  AdminauthController.protect,
+  AdminauthController.restrictTo('admin'),
+  AdminController.resetPassSpecialist
+);
+
 module.exports = router;
