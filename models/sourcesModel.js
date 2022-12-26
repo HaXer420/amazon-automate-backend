@@ -5,6 +5,7 @@ const sourceSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Must have a name'],
+      unique: [true, 'Source Already Exist!'],
     },
     createdAt: {
       type: Date,

@@ -9,6 +9,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const adminRouter = require('./routes/adminRoute');
 const managerRouter = require('./routes/managersRoute');
 const specialistRouter = require('./routes/sourcespecialistRoute');
+const sourceRouter = require('./routes/sourceRoute');
 
 dotenv.config({ path: './config.env' });
 
@@ -38,6 +39,7 @@ app.use(cookieParser());
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/manager', managerRouter);
 app.use('/api/v1/specialist', specialistRouter);
+app.use('/api/v1/source', sourceRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Couldn't fint the ${req.originalUrl} url`, 404));
