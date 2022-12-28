@@ -29,4 +29,39 @@ router.get(
   ProductController.myproducts
 );
 
+router.patch(
+  '/updateproduct/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('sourcing'),
+  ProductController.updateProduct
+);
+
+router.get(
+  '/oneproduct/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('sourcing'),
+  ProductController.getOneProduct
+);
+
+router.get(
+  '/pendingasins',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('sourcing'),
+  ProductController.pendingproducts
+);
+
+router.get(
+  '/approvedorrejectedasins',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('sourcing'),
+  ProductController.aprrovedorrejectedproducts
+);
+
+router.get(
+  '/totalpendingandacceptedasin',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('sourcing'),
+  ProductController.approvedandpendingasinstotal
+);
+
 module.exports = router;

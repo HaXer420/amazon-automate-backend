@@ -27,7 +27,7 @@ const productSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Accepted', 'Rejected'],
+      enum: ['Pending', 'Approved', 'Rejected'],
       default: 'Pending',
     },
     feedbackmanager: {
@@ -40,6 +40,10 @@ const productSchema = mongoose.Schema(
     createdAt: {
       type: Date,
       default: Date.now(),
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
     specialist: {
       type: mongoose.Schema.ObjectId,
