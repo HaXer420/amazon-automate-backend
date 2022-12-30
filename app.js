@@ -21,7 +21,11 @@ const app = express();
 //   next();
 // });
 
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+  })
+);
 
 // app.options('*', cors());
 
