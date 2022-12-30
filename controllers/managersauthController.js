@@ -26,17 +26,23 @@ const signinUser = (user, statuscode, res) => {
   //   secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
   // });
 
-  const cookieOptions = {
+  // const cookieOptions = {
+  //   expires: new Date(
+  //     Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
+  //   ),
+
+  //   httpOnly: true,
+  // };
+
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
     ),
-
     httpOnly: true,
-  };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
-  res.cookie('jwt', token, cookieOptions);
+    secure: true,
+  });
 
   // not to show in the field
   user.password = undefined;
