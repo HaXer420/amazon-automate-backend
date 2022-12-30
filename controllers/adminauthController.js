@@ -12,31 +12,31 @@ const signInToken = function (id) {
   });
 };
 
-const signinUser = (user, statuscode, res) => {
+const signinUser = (user, statuscode, req, res) => {
   const token = signInToken(user._id);
 
   ////////////////////////////////////
   // this code is for https secure heroku connection if needed
 
-  // res.cookie('jwt', token, {
-  //   expires: new Date(
-  //     Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
-  //   ),
-  //   httpOnly: true,
-  //   secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
-  // });
-
-  const cookieOptions = {
+  res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
     ),
-
     httpOnly: true,
-  };
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+  });
 
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  // const cookieOptions = {
+  //   expires: new Date(
+  //     Date.now() + process.env.EXPIRES_COOKIE_IN * 24 * 60 * 60 * 1000
+  //   ),
 
-  res.cookie('jwt', token, cookieOptions);
+  //   httpOnly: true,
+  // };
+
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  // res.cookie('jwt', token, cookieOptions);
 
   // not to show in the field
   user.password = undefined;
@@ -92,7 +92,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Account or password is not correct', 401));
   }
 
-  signinUser(user1, 201, res);
+  signinUser(user1, 201, req, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
