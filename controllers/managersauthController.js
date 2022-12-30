@@ -42,7 +42,6 @@ const signinUser = (user, statuscode, res) => {
     ),
     httpOnly: true,
     secure: true,
-    SameSite: false,
   });
 
   // not to show in the field
