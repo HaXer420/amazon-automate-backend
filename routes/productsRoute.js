@@ -44,6 +44,13 @@ router.get(
 );
 
 router.get(
+  '/oneproductbyspecialist/:id',
+  SpecialistauthController.protect,
+  SpecialistauthController.restrictTo('Specialist'),
+  ProductController.getOneProduct
+);
+
+router.get(
   '/pendingasins',
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Sourcing'),

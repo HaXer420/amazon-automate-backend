@@ -11,15 +11,6 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 
   if (!req.body.specialist) req.body.specialist = req.user.id;
 
-  req.body.totalcost =
-    req.body.purchasecost +
-    req.body.fbafee +
-    req.body.inboundfee +
-    req.body.warehousefee;
-
-  req.body.projectedprofitmargin =
-    req.body.projectedsaleprice / req.body.totalcost;
-
   const product = await Product.create(req.body);
 
   res.status(201).json({
@@ -42,15 +33,6 @@ exports.myproducts = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProduct = catchAsync(async (req, res, next) => {
-  req.body.totalcost =
-    req.body.purchasecost +
-    req.body.fbafee +
-    req.body.inboundfee +
-    req.body.warehousefee;
-
-  req.body.projectedprofitmargin =
-    (req.body.projectedsaleprice / req.body.totalcost) * 100;
-
   const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
@@ -58,7 +40,7 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'Success',
-    message: 'ASIN Created',
+    message: 'ASIN Cpdated',
     data: product,
   });
 });
@@ -117,6 +99,14 @@ exports.approvedandpendingasinstotal = catchAsync(async (req, res, next) => {
     accepted: acceptedproducts.length,
     rejected: pendingproducts.length,
   });
+});
+
+exports.feedbackbymanager = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) return next(new AppError('No ASIN Found!', 400));
+
+  product.feedbackmanager;
 });
 
 // exports.deleteSource = factory.deleteOne(Source);
