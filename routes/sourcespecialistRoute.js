@@ -10,7 +10,7 @@ router
   .route('/create')
   .post(
     ManagersauthController.protect,
-    ManagersauthController.restrictTo('sourcing'),
+    ManagersauthController.restrictTo('Sourcing'),
     SpecialistauthController.signup
   );
 
@@ -45,7 +45,7 @@ router.get(
 router.get(
   '/allbysourcemanager',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   SpecialistController.getAllSpecialists
 );
 

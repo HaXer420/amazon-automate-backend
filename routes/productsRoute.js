@@ -32,35 +32,35 @@ router.get(
 router.patch(
   '/updateproduct/:id',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.updateProduct
 );
 
 router.get(
   '/oneproduct/:id',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.getOneProduct
 );
 
 router.get(
   '/pendingasins',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.pendingproducts
 );
 
 router.get(
   '/approvedorrejectedasins',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.aprrovedorrejectedproducts
 );
 
 router.get(
   '/totalpendingandacceptedasin',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('sourcing'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.approvedandpendingasinstotal
 );
 
