@@ -6,6 +6,7 @@ const logger = require('morgan');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
+const factory = require('./controllers/factoryHandler');
 const adminRouter = require('./routes/adminRoute');
 const managerRouter = require('./routes/managersRoute');
 const specialistRouter = require('./routes/sourcespecialistRoute');
@@ -50,6 +51,8 @@ app.use('/api/v1/manager', managerRouter);
 app.use('/api/v1/specialist', specialistRouter);
 app.use('/api/v1/source', sourceRouter);
 app.use('/api/v1/product', ProductRouter);
+
+app.get('/logout', factory.globalLogout);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Couldn't fint the ${req.originalUrl} url`, 404));

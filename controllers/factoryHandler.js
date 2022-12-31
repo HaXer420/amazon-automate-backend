@@ -105,3 +105,8 @@ exports.resetPasswordGlobal = (Model) =>
       message: 'Password Changed!',
     });
   });
+
+exports.globalLogout = catchAsync(async (req, res) => {
+  res.clearCookie('jwt', { path: '/' });
+  res.status(200).json({ status: 'Cookie has been deleted!' });
+});
