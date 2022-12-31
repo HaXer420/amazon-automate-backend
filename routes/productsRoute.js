@@ -71,4 +71,11 @@ router.get(
   ProductController.approvedandpendingasinstotal
 );
 
+router.patch(
+  '/feedbackandapprovebysmanager/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Sourcing'),
+  ProductController.feedbackbymanager
+);
+
 module.exports = router;

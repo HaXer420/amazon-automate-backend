@@ -45,6 +45,8 @@ exports.myproducts = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProduct = catchAsync(async (req, res, next) => {
+  req.body.updatedAt = Date.now();
+
   const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
@@ -118,7 +120,33 @@ exports.feedbackbymanager = catchAsync(async (req, res, next) => {
 
   if (!product) return next(new AppError('No ASIN Found!', 400));
 
-  product.feedbackmanager;
+  if (!req.body.message)
+    return next(
+      new AppError('You Must Enter feedback before Accept or Reject!', 400)
+    );
+
+  const feedback = {
+    manager: req.user.id,
+    message: req.body.message,
+  };
+
+  if (req.body.approve === true) {
+    product.status = 'Approved';
+  }
+
+  if (req.body.approve === false) {
+    product.status = 'Rejected';
+  }
+
+  product.feedbackmanager = feedback;
+  product.updatedAt = Date.now();
+  product.isApproved = req.body.approve;
+  product.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 'Success',
+    message: 'Product Updated!',
+  });
 });
 
 // exports.deleteSource = factory.deleteOne(Source);
