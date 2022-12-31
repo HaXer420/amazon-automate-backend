@@ -101,7 +101,7 @@ exports.aprrovedorrejectedproducts = catchAsync(async (req, res, next) => {
 
 exports.approvedandpendingasinstotal = catchAsync(async (req, res, next) => {
   const acceptedproducts = await Product.find({
-    $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Accepted` } }],
+    $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
   });
 
   const pendingproducts = await Product.find({
@@ -111,7 +111,7 @@ exports.approvedandpendingasinstotal = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'Success',
     accepted: acceptedproducts.length,
-    rejected: pendingproducts.length,
+    pending: pendingproducts.length,
   });
 });
 
