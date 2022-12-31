@@ -23,7 +23,19 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 exports.getallproducts = factory.getAll(Product);
 
 exports.myproducts = catchAsync(async (req, res, next) => {
-  const product = await Product.find({ specialist: req.user.id });
+  const features = new APIFeatures(
+    Product.find({ specialist: req.user.id }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const product = await features.query;
+
+  // const product = await Product.find({ specialist: req.user.id });
 
   res.status(200).json({
     status: 'Success',
