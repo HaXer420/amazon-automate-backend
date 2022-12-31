@@ -48,7 +48,7 @@ const managerSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['account', 'sourcing'],
+      enum: ['Account', 'Sourcing'],
       required: [true, 'Must have a role'],
     },
     passResetToken: String,

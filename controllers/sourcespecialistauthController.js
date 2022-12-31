@@ -32,6 +32,8 @@ const signinUser = (user, statuscode, res) => {
     ),
 
     httpOnly: true,
+    sameSite: 'none',
+    secure: true,
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
