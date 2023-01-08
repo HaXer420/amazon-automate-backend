@@ -36,16 +36,16 @@ const signinUser = (user, statuscode, res) => {
     secure: true,
   };
 
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  if (process.env.POSTMAN === 'yes') cookieOptions.secure = false;
 
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('SESSION_ID2085', token, cookieOptions);
 
   // not to show in the field
   user.password = undefined;
 
   res.status(statuscode).json({
     status: 'success',
-    token,
+    message: 'Logged In!',
     data: {
       user: user.id,
       role: user.role,
@@ -67,7 +67,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     sourcemanager: req.body.sourcemanager,
   });
 
-  req.token = signinUser(newUser, 201, res);
+  // req.token = signinUser(newUser, 201, res);
 
   req.user = newUser._id;
   // const token = signInToken(newUser._id);
@@ -107,12 +107,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   //Getting Token and check if its true or correct
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
+  // if (
+  //   req.headers.authorization &&
+  //   req.headers.authorization.startsWith('Bearer')
+  // ) {
+  //   token = req.headers.authorization.split(' ')[1];
+  // }
+
+  if (req.cookies.SESSION_ID2085) token = req.cookies.SESSION_ID2085;
 
   // console.log(req.headers);
   if (!token) {

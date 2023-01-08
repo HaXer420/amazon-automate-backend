@@ -107,6 +107,6 @@ exports.resetPasswordGlobal = (Model) =>
   });
 
 exports.globalLogout = catchAsync(async (req, res) => {
-  res.clearCookie('jwt', { path: '/' });
+  res.clearCookie(`SESSION_ID${req.params.id}`, { path: '/' });
   res.status(200).json({ status: 'Cookie has been deleted!' });
 });
