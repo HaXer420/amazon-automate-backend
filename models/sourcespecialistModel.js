@@ -71,6 +71,11 @@ const specialistSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+specialistSchema.virtual('products', {
+  ref: 'Product',
+  foreignField: 'specialist',
+  localField: '_id',
+});
 
 specialistSchema.pre(/^find/, function (next) {
   this.populate({

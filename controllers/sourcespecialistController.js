@@ -47,9 +47,15 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.getprofile = catchAsync(async (req, res, next) => {
-  const doc = await Specialist.findById(req.params.id).select(
-    'name email passwordChangedAt photo role sourcemanager'
-  );
+  const doc = await Specialist.findById(req.params.id)
+    .select('name email passwordChangedAt photo role sourcemanager')
+    .populate({
+      path: 'products',
+      match: {
+        $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
+      },
+      select: '-feedbackmanager -client',
+    });
 
   // const doc = await Model.findById(req.params.id).populate('reviews');
 
@@ -60,6 +66,7 @@ exports.getprofile = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
+    productssize: doc.products.length,
     data: doc,
   });
 });
