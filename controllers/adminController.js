@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Manager = require('../models/managersModel');
 const Specialist = require('../models/sourcespecialistModel');
+const Client = require('../models/clientModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -49,3 +50,5 @@ exports.getUser = factory.getOne(Admin);
 exports.resetPassManager = factory.resetPasswordGlobal(Manager);
 
 exports.resetPassSpecialist = factory.resetPasswordGlobal(Specialist);
+
+exports.resetPassClient = factory.resetPasswordGlobal(Client);
