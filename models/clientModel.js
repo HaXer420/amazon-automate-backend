@@ -78,6 +78,12 @@ clientSchema.virtual('products', {
   localField: '_id',
 });
 
+clientSchema.virtual('transactions', {
+  ref: 'Transaction',
+  foreignField: 'client',
+  localField: '_id',
+});
+
 clientSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'accountmanager',

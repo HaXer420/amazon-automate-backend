@@ -12,7 +12,8 @@ const managerRouter = require('./routes/managersRoute');
 const clientRouter = require('./routes/clientRoute');
 const specialistRouter = require('./routes/sourcespecialistRoute');
 const sourceRouter = require('./routes/sourceRoute');
-const ProductRouter = require('./routes/productsRoute');
+const productRouter = require('./routes/productsRoute');
+const transactionRouter = require('./routes/clientTransactionRoute');
 
 dotenv.config({ path: './config.env' });
 
@@ -52,12 +53,13 @@ app.use('/api/v1/manager', managerRouter);
 app.use('/api/v1/client', clientRouter);
 app.use('/api/v1/specialist', specialistRouter);
 app.use('/api/v1/source', sourceRouter);
-app.use('/api/v1/product', ProductRouter);
+app.use('/api/v1/product', productRouter);
+app.use('/api/v1/transaction', transactionRouter);
 
 app.get('/logout/:id', factory.globalLogout);
 
 app.all('*', (req, res, next) => {
-  next(new AppError(`Couldn't fint the ${req.originalUrl} url`, 404));
+  next(new AppError(`Couldn't find the ${req.originalUrl} url`, 404));
 });
 
 app.use(globalErrorHandler);

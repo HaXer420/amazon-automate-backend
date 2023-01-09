@@ -50,8 +50,9 @@ exports.getMe = (req, res, next) => {
 
 exports.getprofile = catchAsync(async (req, res, next) => {
   const doc = await Client.findById(req.params.id)
-    .populate('products')
-    .select('name email passwordChangedAt photo role');
+    .select('name email passwordChangedAt photo role')
+    .populate({ path: 'products' })
+    .populate({ path: 'transactions' });
 
   // const doc = await Model.findById(req.params.id).populate('reviews');
 
@@ -63,6 +64,7 @@ exports.getprofile = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     productssize: doc.products.length,
+    transactionssize: doc.transactions.length,
     data: doc,
   });
 });
@@ -108,6 +110,18 @@ exports.assignproducttoclient = catchAsync(async (req, res, next) => {
     status: 'success',
     message: `Product ${product.productname} Successfully Assigned to Client ${client.name}`,
     data: Product,
+  });
+});
+
+exports.accgethisclients = catchAsync(async (req, res, next) => {
+  const client = await Client.find({ accountmanager: { $eq: req.user.id } });
+
+  if (!client) return next(new AppError('Clients not found', 400));
+
+  res.status(200).json({
+    status: 'Success',
+    size: client.length,
+    data: client,
   });
 });
 

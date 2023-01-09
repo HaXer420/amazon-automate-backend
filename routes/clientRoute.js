@@ -43,10 +43,10 @@ router.get(
 );
 
 router.get(
-  '/allbyaccmanager',
+  '/allassignedbyaccmanager',
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Account'),
-  ClientController.getAllClients
+  ClientController.accgethisclients
 );
 
 router.patch(
