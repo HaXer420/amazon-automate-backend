@@ -50,7 +50,7 @@ exports.getMe = (req, res, next) => {
 
 exports.getprofile = catchAsync(async (req, res, next) => {
   const doc = await Client.findById(req.params.id)
-    .select('name email passwordChangedAt photo role')
+    .select('name email passwordChangedAt photo role balance')
     .populate({ path: 'products', select: '-feedbackmanager -specialist' })
     .populate({ path: 'transactions' });
 
