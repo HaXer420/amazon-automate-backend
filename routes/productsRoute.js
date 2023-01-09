@@ -78,4 +78,11 @@ router.patch(
   ProductController.feedbackbymanager
 );
 
+router.get(
+  '/approvedandunassigned',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ProductController.unassignedandapproved
+);
+
 module.exports = router;

@@ -64,4 +64,16 @@ exports.getprofile = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAccountManagers = catchAsync(async (req, res, next) => {
+  const accountmanager = await Manager.find({
+    role: { $eq: 'Account' },
+  }).select('name');
+
+  res.status(200).json({
+    status: 'Success',
+    size: accountmanager.length,
+    data: accountmanager,
+  });
+});
+
 exports.getAllManagers = factory.getAll(Manager);

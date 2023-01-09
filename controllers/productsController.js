@@ -149,4 +149,27 @@ exports.feedbackbymanager = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.unassignedandapproved = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
+
+  res.status(200).json({
+    status: 'Success',
+    message: 'Approved and Unassigned Products.',
+    size: products.length,
+    data: products,
+  });
+});
+
 // exports.deleteSource = factory.deleteOne(Source);

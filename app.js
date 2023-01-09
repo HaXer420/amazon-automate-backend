@@ -9,6 +9,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const factory = require('./controllers/factoryHandler');
 const adminRouter = require('./routes/adminRoute');
 const managerRouter = require('./routes/managersRoute');
+const clientRouter = require('./routes/clientRoute');
 const specialistRouter = require('./routes/sourcespecialistRoute');
 const sourceRouter = require('./routes/sourceRoute');
 const ProductRouter = require('./routes/productsRoute');
@@ -48,6 +49,7 @@ app.use(cookieParser());
 
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/manager', managerRouter);
+app.use('/api/v1/client', clientRouter);
 app.use('/api/v1/specialist', specialistRouter);
 app.use('/api/v1/source', sourceRouter);
 app.use('/api/v1/product', ProductRouter);

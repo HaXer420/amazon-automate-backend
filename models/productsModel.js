@@ -50,13 +50,10 @@ const productSchema = mongoose.Schema(
       ref: 'Specialist',
       required: [true, 'ASIN must belong to Specialist'],
     },
-
-    client: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Client',
-      },
-    ],
+    client: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Client',
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -72,6 +69,10 @@ productSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'feedbackmanager.manager',
     select: 'name',
+  });
+  this.populate({
+    path: 'client',
+    select: '-accountmanager name',
   });
   next();
 });

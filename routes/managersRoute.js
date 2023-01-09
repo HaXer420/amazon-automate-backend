@@ -41,4 +41,10 @@ router.get(
   ManagerController.getAllManagers
 );
 
+router.get(
+  '/accountmanagers',
+  AdminauthController.protect,
+  ManagerController.getAccountManagers
+);
+
 module.exports = router;
