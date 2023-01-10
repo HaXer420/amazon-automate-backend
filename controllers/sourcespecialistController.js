@@ -2,6 +2,7 @@ const Specialist = require('../models/sourcespecialistModel');
 const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const Manager = require('../models/managersModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -68,6 +69,25 @@ exports.getprofile = catchAsync(async (req, res, next) => {
     status: 'success',
     productssize: doc.products.length,
     data: doc,
+  });
+});
+
+exports.assignspecialisttosourcemanager = catchAsync(async (req, res, next) => {
+  const specialist = await Specialist.findById(req.params.id);
+
+  if (!specialist) return next(new AppError('Specialist not found', 400));
+
+  const manager = await Manager.findById(req.body.sourcemanager);
+
+  if (!manager) return next(new AppError('Manager not found', 400));
+
+  specialist.sourcemanager = req.body.sourcemanager;
+  specialist.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 'success',
+    message: `Specialist Successfully Assigned to Manager ${manager.name}`,
+    data: specialist,
   });
 });
 

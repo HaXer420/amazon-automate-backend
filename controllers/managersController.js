@@ -76,4 +76,16 @@ exports.getAccountManagers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getSourceManagers = catchAsync(async (req, res, next) => {
+  const sourcemanager = await Manager.find({
+    role: { $eq: 'Sourcing' },
+  }).select('name');
+
+  res.status(200).json({
+    status: 'Success',
+    size: sourcemanager.length,
+    data: sourcemanager,
+  });
+});
+
 exports.getAllManagers = factory.getAll(Manager);

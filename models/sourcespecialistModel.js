@@ -38,13 +38,11 @@ const specialistSchema = new mongoose.Schema(
     passwordChangedAt: {
       type: Date,
     },
-    sourcemanager: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Manager',
-        required: [true, 'Specialist must belong to Manager'],
-      },
-    ],
+    sourcemanager: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Manager',
+      required: [true, 'Specialist must belong to Manager'],
+    },
     photo: {
       type: String,
       default:

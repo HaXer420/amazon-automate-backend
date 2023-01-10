@@ -47,4 +47,10 @@ router.get(
   ManagerController.getAccountManagers
 );
 
+router.get(
+  '/sourcemanagers',
+  AdminauthController.protect,
+  ManagerController.getSourceManagers
+);
+
 module.exports = router;

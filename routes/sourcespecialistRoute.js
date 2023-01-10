@@ -49,4 +49,10 @@ router.get(
   SpecialistController.getAllSpecialists
 );
 
+router.patch(
+  '/assignspecialisttosourcemanager/:id',
+  AdminauthController.protect,
+  SpecialistController.assignspecialisttosourcemanager
+);
+
 module.exports = router;
