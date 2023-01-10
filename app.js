@@ -58,6 +58,7 @@ app.use('/api/v1/product', productRouter);
 app.use('/api/v1/transaction', transactionRouter);
 app.use('/api/v1/utils', utilsRouter);
 
+/// logout route
 app.get('/logout/:id', factory.globalLogout);
 
 app.all('*', (req, res, next) => {
