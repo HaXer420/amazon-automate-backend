@@ -13,6 +13,12 @@ exports.totalproductsclientsmanagersspecialists = catchAsync(
   async (req, res, next) => {
     const totalclients = await Client.find();
     const totalproducts = await Product.find({ status: { $ne: 'Rejected' } });
+    const unassignedproducts = await Product.find({
+      $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
+    });
+    const assignedproducts = await Product.find({
+      isAssigned: { $eq: true },
+    });
     const approvedproducts = await Product.find({
       status: { $eq: 'Approved' },
     });
@@ -27,6 +33,8 @@ exports.totalproductsclientsmanagersspecialists = catchAsync(
       totalclients: totalclients.length,
       totalproducts: totalproducts.length,
       approvedproducts: approvedproducts.length,
+      unassignedproducts: unassignedproducts.length,
+      assignedproducts: assignedproducts.length,
       pendingproducts: pendingproducts.length,
       sourcingmanagers: sourcingmanagers.length,
       accountmanagers: accountmanagers.length,
