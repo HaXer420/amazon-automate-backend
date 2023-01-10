@@ -29,7 +29,6 @@ exports.totalproductsclientsmanagersspecialists = catchAsync(
     const sources = await Source.find();
 
     res.status(200).json({
-      status: 'Success',
       totalclients: totalclients.length,
       totalproducts: totalproducts.length,
       approvedproducts: approvedproducts.length,
