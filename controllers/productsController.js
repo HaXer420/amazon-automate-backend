@@ -228,7 +228,112 @@ exports.unassignedandapproved = catchAsync(async (req, res, next) => {
 
 exports.totalpurchasecostforeachspecialist = catchAsync(
   async (req, res, next) => {
+    const matchStage =
+      req.query.dateRange === 'thisMonth'
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  { $gte: ['$createdAt', new Date(new Date().setDate(1))] },
+                  { $lt: ['$createdAt', new Date()] },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : req.query.dateRange === 'lastYear'
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $gte: [
+                      '$createdAt',
+                      new Date(new Date().getFullYear() - 1, 0, 1),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      '$createdAt',
+                      new Date(new Date().getFullYear(), 0, 1),
+                    ],
+                  },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : req.query.dateRange === 'lastMonth'
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $gte: [
+                      '$createdAt',
+                      new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                    ],
+                  },
+                  { $lt: ['$createdAt', new Date(new Date().setDate(1))] },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : req.query.dateRange === 'thisWeek'
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $gte: [
+                      '$createdAt',
+                      new Date(
+                        new Date().setDate(
+                          new Date().getDate() - new Date().getDay()
+                        )
+                      ),
+                    ],
+                  },
+                  { $lt: ['$createdAt', new Date()] },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : req.query.dateRange === 'thisYear'
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $gte: [
+                      '$createdAt',
+                      new Date(new Date().getFullYear(), 0, 1),
+                    ],
+                  },
+                  { $lt: ['$createdAt', new Date()] },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : req.query.startDate && req.query.endDate
+        ? {
+            $match: {
+              $expr: {
+                $and: [
+                  { $gte: ['$createdAt', new Date(req.query.startDate)] },
+                  { $lt: ['$createdAt', new Date(req.query.endDate)] },
+                  { $eq: ['$status', 'Approved'] },
+                ],
+              },
+            },
+          }
+        : {};
+
     const product = await Product.aggregate([
+      matchStage,
       {
         $lookup: {
           from: 'specialists',
