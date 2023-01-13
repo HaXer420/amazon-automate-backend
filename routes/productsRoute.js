@@ -47,7 +47,6 @@ router.patch(
 router.get(
   '/oneproduct/:id',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('Sourcing'),
   ProductController.getOneProduct
 );
 
