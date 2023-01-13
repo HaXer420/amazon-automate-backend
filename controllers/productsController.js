@@ -70,11 +70,12 @@ exports.updateexistingProductbyspecialist = catchAsync(
     product.feedback = undefined;
     product.updatedAt = Date.now();
     product.save({ validateBeforeSave: false });
-  },
-  res.status(200).json({
-    status: 'success',
-    message: 'Product Successfully Updated',
-  })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Product Successfully Updated',
+    });
+  }
 );
 
 exports.getallproducts = factory.getAll(Product);
