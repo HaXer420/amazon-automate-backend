@@ -318,6 +318,14 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
               },
             },
           }
+        : req.query.dateRange === 'all'
+        ? {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ['$status', 'Approved'] }],
+              },
+            },
+          }
         : req.query.startDate && req.query.endDate
         ? {
             $match: {
