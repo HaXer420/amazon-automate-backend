@@ -175,19 +175,28 @@ exports.aprrovedorrejectedproducts = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.approvedandpendingasinstotal = catchAsync(async (req, res, next) => {
-  const acceptedproducts = await Product.find({ status: { $ne: `Rejected` } });
+exports.totalapprovedandpendingasinstotal = catchAsync(
+  async (req, res, next) => {
+    const acceptedproducts = await Product.find({
+      status: { $ne: `Rejected` },
+    });
 
-  const pendingproducts = await Product.find({
-    $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
-  });
+    const pendingproducts = await Product.find({
+      $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+    });
 
-  res.status(200).json({
-    status: 'Success',
-    accepted: acceptedproducts.length,
-    pending: pendingproducts.length,
-  });
-});
+    const approvedproducts = await Product.find({
+      $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
+    });
+
+    res.status(200).json({
+      status: 'Success',
+      accepted: acceptedproducts.length,
+      pending: pendingproducts.length,
+      approvedproducts: approvedproducts.length,
+    });
+  }
+);
 
 exports.feedbackbymanager = catchAsync(async (req, res, next) => {
   const product = await Product.findById(req.params.id);

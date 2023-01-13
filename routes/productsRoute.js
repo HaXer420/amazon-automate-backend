@@ -75,7 +75,7 @@ router.get(
   '/totalpendingandacceptedasin',
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Sourcing'),
-  ProductController.approvedandpendingasinstotal
+  ProductController.totalapprovedandpendingasinstotal
 );
 
 router.patch(
