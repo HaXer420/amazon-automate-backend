@@ -32,6 +32,12 @@ const server = app.listen(port, () => {
   console.log(`Server is listening on Port ${port}`);
 });
 
+const io = require('socket.io')(server);
+
+const socket = require('./utils/chatSocket');
+
+socket(io);
+
 process.on('unhandledRejection', (err) => {
   console.log(err.name, err.message);
   console.log('UNHANDLED REJECTION..... Shutting Down.....');

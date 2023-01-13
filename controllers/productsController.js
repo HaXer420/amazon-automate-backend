@@ -176,9 +176,7 @@ exports.aprrovedorrejectedproducts = catchAsync(async (req, res, next) => {
 });
 
 exports.approvedandpendingasinstotal = catchAsync(async (req, res, next) => {
-  const acceptedproducts = await Product.find({
-    $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
-  });
+  const acceptedproducts = await Product.find({ status: { $ne: `Rejected` } });
 
   const pendingproducts = await Product.find({
     $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
@@ -393,7 +391,6 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
     ]);
 
     let totalpurchasecost = 0;
-    let totaldonation = 0;
     product.forEach((element) => {
       totalpurchasecost += element.totalPurchaseCost;
     });
