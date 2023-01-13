@@ -67,9 +67,14 @@ exports.updateexistingProductbyspecialist = catchAsync(
     product.projectedprofitmargin = req.body.projectedprofitmargin;
     product.specialist = req.user.id;
     product.sourcemanager = req.user.sourcemanager;
+    product.feedback = undefined;
     product.updatedAt = Date.now();
     product.save({ validateBeforeSave: false });
-  }
+  },
+  res.status(200).json({
+    status: 'success',
+    message: 'Product Successfully Updated',
+  })
 );
 
 exports.getallproducts = factory.getAll(Product);
@@ -120,7 +125,11 @@ exports.pendingproducts = catchAsync(async (req, res, next) => {
 
   const features = new APIFeatures(
     Product.find({
-      $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+      $and: [
+        { isApproved: { $eq: false } },
+        { status: { $eq: `Pending` } },
+        { sourcemanager: { $eq: req.user.id } },
+      ],
     }),
     req.query
   )
