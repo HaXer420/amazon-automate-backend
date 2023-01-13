@@ -67,7 +67,7 @@ exports.updateexistingProductbyspecialist = catchAsync(
     product.projectedprofitmargin = req.body.projectedprofitmargin;
     product.specialist = req.user.id;
     product.sourcemanager = req.user.sourcemanager;
-    product.feedback = undefined;
+    product.feedbackmanager = undefined;
     product.updatedAt = Date.now();
     product.save({ validateBeforeSave: false });
 

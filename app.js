@@ -15,6 +15,7 @@ const sourceRouter = require('./routes/sourceRoute');
 const productRouter = require('./routes/productsRoute');
 const transactionRouter = require('./routes/clientTransactionRoute');
 const utilsRouter = require('./routes/utilsRoute');
+const chatRouter = require('./routes/chatRoute');
 
 dotenv.config({ path: './config.env' });
 
@@ -57,6 +58,7 @@ app.use('/api/v1/source', sourceRouter);
 app.use('/api/v1/product', productRouter);
 app.use('/api/v1/transaction', transactionRouter);
 app.use('/api/v1/utils', utilsRouter);
+app.use('/api/v1/chat', chatRouter);
 
 /// logout route
 app.get('/logout/:id', factory.globalLogout);
