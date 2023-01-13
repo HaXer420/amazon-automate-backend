@@ -10,6 +10,7 @@ router.post(
   '/create',
   SpecialistauthController.protect,
   SpecialistauthController.restrictTo('Specialist'),
+  ProductController.checkexistingproducts,
   ProductController.createProduct
 );
 
@@ -34,6 +35,13 @@ router.patch(
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Sourcing'),
   ProductController.updateProduct
+);
+
+router.patch(
+  '/overwriteproduct/:id',
+  SpecialistauthController.protect,
+  SpecialistauthController.restrictTo('Specialist'),
+  ProductController.updateexistingProductbyspecialist
 );
 
 router.get(
@@ -83,6 +91,13 @@ router.get(
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Account'),
   ProductController.unassignedandapproved
+);
+
+router.get(
+  '/totalpurcasecostforeachspecialist',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Sourcing'),
+  ProductController.totalpurchasecostforeachspecialist
 );
 
 module.exports = router;

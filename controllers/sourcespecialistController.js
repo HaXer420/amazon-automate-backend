@@ -91,4 +91,16 @@ exports.assignspecialisttosourcemanager = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getassignedspecialists = catchAsync(async (req, res, next) => {
+  const specialists = await Specialist.find({
+    sourcemanager: { $eq: req.user.id },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: `Specialists ${specialists.length}`,
+    data: specialists,
+  });
+});
+
 exports.getAllSpecialists = factory.getAll(Specialist);

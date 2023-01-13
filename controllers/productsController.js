@@ -3,11 +3,38 @@ const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
+const Specialist = require('../models/sourcespecialistModel');
+
+exports.checkexistingproducts = catchAsync(async (req, res, next) => {
+  const product = await Product.findOne({ asin: `${req.body.asin}` });
+  if (!product) next();
+  if (product.projectedprofitmargin > req.body.projectedprofitmargin) {
+    res.status(200).json({
+      status: 'Already Exist Better Product',
+      better: 'no',
+      desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
+      existingproduct: product,
+      yourproduct: req.body,
+    });
+  }
+  if (product.projectedprofitmargin < req.body.projectedprofitmargin) {
+    res.status(200).json({
+      status: 'Your Product has better Profit Margin',
+      better: 'yes',
+      desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
+      existingproduct: product,
+      yourproduct: req.body,
+    });
+  }
+  next();
+});
 
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const tempasin = await Product.findOne({ asin: `${req.body.asin}` });
+  // const specialist = await Specialist.findById(req.user.id);
 
-  if (tempasin) return next(new AppError('ASIN Already Exists!'));
+  req.body.sourcemanager = req.user.sourcemanager;
+
+  // if (tempasin) return next(new AppError('ASIN Already Exist!'));
 
   if (!req.body.specialist) req.body.specialist = req.user.id;
 
@@ -19,6 +46,31 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     data: product,
   });
 });
+
+exports.updateexistingProductbyspecialist = catchAsync(
+  async (req, res, next) => {
+    const product = await Product.findById(req.params.id);
+
+    if (product.status === 'Rejected') {
+      product.status = 'Pending';
+    }
+
+    product.productname = req.body.productname;
+    product.sourcename = req.body.sourcename;
+    product.sourceurl = req.body.sourceurl;
+    product.purchasecost = req.body.purchasecost;
+    product.fbafee = req.body.fbafee;
+    product.inboundfee = req.body.inboundfee;
+    product.warehousefee = req.body.warehousefee;
+    product.projectedsaleprice = req.body.projectedsaleprice;
+    product.totalcost = req.body.totalcost;
+    product.projectedprofitmargin = req.body.projectedprofitmargin;
+    product.specialist = req.user.id;
+    product.sourcemanager = req.user.sourcemanager;
+    product.updatedAt = Date.now();
+    product.save({ validateBeforeSave: false });
+  }
+);
 
 exports.getallproducts = factory.getAll(Product);
 
@@ -173,3 +225,32 @@ exports.unassignedandapproved = catchAsync(async (req, res, next) => {
 });
 
 // exports.deleteSource = factory.deleteOne(Source);
+
+exports.totalpurchasecostforeachspecialist = catchAsync(
+  async (req, res, next) => {
+    const product = await Product.aggregate([
+      {
+        $lookup: {
+          from: 'Specialist',
+          localField: 'specialist',
+          foreignField: '_id',
+          as: 'specialist',
+        },
+      },
+      {
+        $unwind: '$specialist',
+      },
+      {
+        $group: {
+          _id: '$specialist.name',
+          totalCost: { $sum: '$purchasecost' },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'Success',
+      data: product,
+    });
+  }
+);

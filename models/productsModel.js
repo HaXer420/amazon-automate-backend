@@ -50,6 +50,11 @@ const productSchema = mongoose.Schema(
       ref: 'Specialist',
       required: [true, 'ASIN must belong to Specialist'],
     },
+    sourcemanager: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Manager',
+      required: [true, 'Asin must belong to Manager'],
+    },
     client: {
       type: mongoose.Schema.ObjectId,
       ref: 'Client',
@@ -68,6 +73,10 @@ productSchema.pre(/^find/, function (next) {
   });
   this.populate({
     path: 'feedbackmanager.manager',
+    select: 'name',
+  });
+  this.populate({
+    path: 'sourcemanager',
     select: 'name',
   });
   this.populate({

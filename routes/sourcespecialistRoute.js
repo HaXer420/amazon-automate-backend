@@ -46,7 +46,7 @@ router.get(
   '/allbysourcemanager',
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Sourcing'),
-  SpecialistController.getAllSpecialists
+  SpecialistController.getassignedspecialists
 );
 
 router.patch(
