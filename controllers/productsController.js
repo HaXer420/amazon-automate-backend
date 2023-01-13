@@ -231,7 +231,7 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
     const product = await Product.aggregate([
       {
         $lookup: {
-          from: 'Specialist',
+          from: 'specialists',
           localField: 'specialist',
           foreignField: '_id',
           as: 'specialist',
@@ -243,7 +243,7 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
       {
         $group: {
           _id: '$specialist.name',
-          totalCost: { $sum: '$purchasecost' },
+          totalPurchaseCost: { $sum: '$purchasecost' },
         },
       },
     ]);
