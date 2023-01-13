@@ -114,9 +114,23 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
 exports.getOneProduct = factory.getOne(Product);
 
 exports.pendingproducts = catchAsync(async (req, res, next) => {
-  const products = await Product.find({
-    $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
-  });
+  // const products = await Product.find({
+  //   $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+  // });
+
+  const features = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
 
   res.status(200).json({
     status: 'Success',
@@ -228,6 +242,11 @@ exports.unassignedandapproved = catchAsync(async (req, res, next) => {
 
 exports.totalpurchasecostforeachspecialist = catchAsync(
   async (req, res, next) => {
+    if (!req.query.dateRange && !(req.query.startDate && req.query.endDate))
+      return next(new AppError('Must Send Query!', 400));
+
+    // console.log(req.query);
+
     const matchStage =
       req.query.dateRange === 'thisMonth'
         ? {
@@ -355,14 +374,23 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
       },
       {
         $group: {
-          _id: '$specialist.name',
+          _id: '$specialist._id',
+          specialistName: { $first: '$specialist.name' },
           totalPurchaseCost: { $sum: '$purchasecost' },
+          docCount: { $sum: 1 },
         },
       },
     ]);
 
+    let totalpurchasecost = 0;
+    let totaldonation = 0;
+    product.forEach((element) => {
+      totalpurchasecost += element.totalPurchaseCost;
+    });
+
     res.status(200).json({
       status: 'Success',
+      TotalPurchaseCost: totalpurchasecost,
       data: product,
     });
   }
