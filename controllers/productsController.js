@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Product = require('../models/productsModel');
 const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
@@ -273,7 +274,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                   { $gte: ['$createdAt', new Date(new Date().setDate(1))] },
                   { $lt: ['$createdAt', new Date()] },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
