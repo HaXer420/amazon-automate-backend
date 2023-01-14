@@ -302,7 +302,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                     ],
                   },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
@@ -320,7 +325,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                   },
                   { $lt: ['$createdAt', new Date(new Date().setDate(1))] },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
@@ -342,7 +352,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                   },
                   { $lt: ['$createdAt', new Date()] },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
@@ -360,7 +375,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                   },
                   { $lt: ['$createdAt', new Date()] },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
@@ -371,7 +391,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
               $expr: {
                 $and: [
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
@@ -384,7 +409,12 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
                   { $gte: ['$createdAt', new Date(req.query.startDate)] },
                   { $lt: ['$createdAt', new Date(req.query.endDate)] },
                   { $eq: ['$status', 'Approved'] },
-                  { $eq: ['$sourcemanager', req.user.id] },
+                  {
+                    $eq: [
+                      '$sourcemanager',
+                      mongoose.Types.ObjectId(req.user.id),
+                    ],
+                  },
                 ],
               },
             },
