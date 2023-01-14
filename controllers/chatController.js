@@ -131,7 +131,7 @@ const getOne = (Model, popOpt, popOpt2, popOpt3) =>
       status: 'success',
       ManagerSeen: doc.managerisSeen,
       ClientSeen: doc.clientisSeen,
-      data: doc.messages.reverse(),
+      data: doc.messages,
     });
   });
 
