@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Chat = require('../models/chatModel');
 
 module.exports = (io) => {
@@ -25,8 +24,8 @@ module.exports = (io) => {
         chat.save();
 
         // Join the socket to the chat room
-        socket.join(chat._id);
-        console.log(socket.rooms);
+        socket.join(chat.id);
+        // console.log(socket.rooms);
 
         // Send the chat history to the client
         socket.emit('chatHistory', chat.messages);
@@ -35,37 +34,46 @@ module.exports = (io) => {
       }
     });
 
-    socket.on(
-      'sendMessage',
-      async ({ clientId, accountmanagerId, message, name }) => {
-        try {
-          // Find the chat associated with the client and account manager
-          const chat = await Chat.findOne({
-            client: clientId,
-            accountmanager: accountmanagerId,
-          });
+    socket.on('sendMessage', async ({ userId, chatId, message }) => {
+      try {
+        let name;
+        // Find the chat associated with the client and account manager
+        const chat = await Chat.findById(chatId);
 
-          // Add the message to the chat's messages array
-          chat.messages.push({
-            name: name,
-            message: message,
-            createdAt: new Date(),
-          });
-
-          // Save the updated chat
-          await chat.save();
-
-          // Send the message to all clients in the chat room
-          io.to(chat._id).emit('newMessage', {
-            name: name,
-            message: message,
-            createdAt: new Date(),
-          });
-        } catch (err) {
-          console.error(err);
+        if (chat.client.id === userId) {
+          chat.managerisSeen = false;
+          name = chat.client.name;
+          // console.log('seen by client');
         }
+
+        if (chat.accountmanager.id === userId) {
+          chat.clientisSeen = false;
+          name = chat.accountmanager.name;
+          // console.log('seen by manager');
+        }
+
+        // Add the message to the chat's messages array
+        chat.messages.push({
+          name: name,
+          message: message,
+          createdAt: new Date(),
+        });
+
+        // Save the updated chat
+        await chat.save();
+
+        // console.log(socket.rooms);
+
+        // Send the message to all clients in the chat room
+        io.to(chat.id).emit('newMessage', {
+          name: name,
+          message: message,
+          createdAt: new Date(),
+        });
+      } catch (err) {
+        console.error(err);
       }
-    );
+    });
 
     socket.on('disconnect', () => {
       console.log('User disconnected: ', socket.id);
