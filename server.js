@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const cors = require('cors');
 const dotenv = require('dotenv');
 
 process.on('uncaughtException', (err) => {
@@ -11,6 +10,10 @@ process.on('uncaughtException', (err) => {
 dotenv.config({ path: './config.env' });
 
 const app = require('./app');
+
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
 
 const db = process.env.DATABASE;
 
@@ -29,21 +32,25 @@ const port = process.env.PORT || 4000;
 
 console.log(`Server running in ${process.env.NODE_ENV} Mode`);
 
-const server = app.listen(port, () => {
-  console.log(`Server is listening on Port ${port}`);
-});
+app.use(cors());
 
-const io = require('socket.io')(server);
+const server = http.createServer(app);
 
-io.use(
-  cors({
+const io = new Server(server, {
+  cors: {
     origin: [
       'http://localhost:3000',
       'https://main.d445q1t59fkda.amplifyapp.com',
     ],
     credentials: true,
-  })
-);
+  },
+});
+
+const server1 = server.listen(port, () => {
+  console.log(`Server is listening on Port ${port}`);
+});
+
+// const io = require('socket.io')(server);
 
 const socket = require('./utils/chatSocket');
 
@@ -52,7 +59,7 @@ socket(io);
 process.on('unhandledRejection', (err) => {
   console.log(err.name, err.message);
   console.log('UNHANDLED REJECTION..... Shutting Down.....');
-  server.close(() => {
+  server1.close(() => {
     process.exit(1);
   });
 });
