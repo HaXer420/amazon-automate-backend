@@ -63,13 +63,13 @@ module.exports = (io) => {
         await chat.save();
 
         // console.log(socket.rooms);
-
-        // Send the message to all clients in the chat room
-        io.to(chat.id).emit('newMessage', {
+        const messagelatest = {
           name: name,
           message: message,
           createdAt: new Date(),
-        });
+        };
+        // Send the message to all clients in the chat room
+        io.to(chat.id).emit('newMessage', messagelatest);
       } catch (err) {
         console.error(err);
       }
