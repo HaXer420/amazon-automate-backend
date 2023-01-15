@@ -25,7 +25,7 @@ module.exports = (io) => {
 
         // Join the socket to the chat room
         socket.join(chat.id);
-        // console.log(socket.rooms);
+        console.log(socket.rooms);
 
         // Send the chat history to the client
         socket.emit('chatHistory', chat.messages);
@@ -62,7 +62,7 @@ module.exports = (io) => {
         // Save the updated chat
         await chat.save();
 
-        // console.log(socket.rooms);
+        console.log(socket.rooms);
         const messagelatest = {
           name: name,
           message: message,
