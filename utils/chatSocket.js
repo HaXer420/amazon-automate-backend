@@ -1,19 +1,32 @@
+const mongoose = require('mongoose');
 const Chat = require('../models/chatModel');
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
     console.log('User connected: ', socket.id);
-    socket.on('joinChat', async ({ clientId, accountmanagerId }) => {
+    socket.on('joinChat', async ({ userId, chatId }) => {
       try {
         // Find the chat associated with the client and account manager
-        console.log('User connected: ', clientId);
-        const chat = await Chat.findOne({
-          client: clientId,
-          accountmanager: accountmanagerId,
-        });
+        console.log('User Joined Chat: ', userId);
+        const chat = await Chat.findById(chatId);
+
+        // console.log(`Client: ${chat.client} and usedId: ${userId}`);
+
+        if (chat.client.id === userId) {
+          chat.clientisSeen = true;
+          // console.log('seen by client');
+        }
+
+        if (chat.accountmanager.id === userId) {
+          chat.managerisSeen = true;
+          // console.log('seen by manager');
+        }
+
+        chat.save();
 
         // Join the socket to the chat room
         socket.join(chat._id);
+        console.log(socket.rooms);
 
         // Send the chat history to the client
         socket.emit('chatHistory', chat.messages);
