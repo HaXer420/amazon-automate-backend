@@ -69,8 +69,7 @@ module.exports = (io) => {
           createdAt: new Date(),
         };
         // Send the message to all clients in the chat room
-        socket.to(chat.id).emit('newMessage', messagelatest);
-        // io.to(chat.id).emit('newMessage', messagelatest);
+        io.to(chat.id).emit('newMessage', messagelatest);
       } catch (err) {
         console.error(err);
       }
