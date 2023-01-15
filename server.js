@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const cors = require('cors');
 const dotenv = require('dotenv');
 
 process.on('uncaughtException', (err) => {
@@ -33,6 +34,16 @@ const server = app.listen(port, () => {
 });
 
 const io = require('socket.io')(server);
+
+io.use(
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'https://main.d445q1t59fkda.amplifyapp.com',
+    ],
+    credentials: true,
+  })
+);
 
 const socket = require('./utils/chatSocket');
 
