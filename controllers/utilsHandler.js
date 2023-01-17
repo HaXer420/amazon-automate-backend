@@ -23,18 +23,18 @@ exports.totalproductsclientsmanagersspecialists = catchAsync(
       specialists,
       sources,
     ] = await Promise.all([
-      Client.find(),
-      Product.find({ status: { $ne: 'Rejected' } }),
-      Product.find({
+      Client.countDocuments(),
+      Product.countDocuments({ status: { $ne: 'Rejected' } }),
+      Product.countDocuments({
         $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
       }),
-      Product.find({ isAssigned: { $eq: true } }),
-      Product.find({ status: { $eq: 'Approved' } }),
-      Product.find({ status: { $eq: 'Pending' } }),
-      Manager.find({ role: { $eq: 'Sourcing' } }),
-      Manager.find({ role: { $eq: 'Account' } }),
-      Specialist.find(),
-      Source.find(),
+      Product.countDocuments({ isAssigned: { $eq: true } }),
+      Product.countDocuments({ status: { $eq: 'Approved' } }),
+      Product.countDocuments({ status: { $eq: 'Pending' } }),
+      Manager.countDocuments({ role: { $eq: 'Sourcing' } }),
+      Manager.countDocuments({ role: { $eq: 'Account' } }),
+      Specialist.countDocuments(),
+      Source.countDocuments(),
     ]);
 
     // const totalclients = await Client.find();
@@ -55,16 +55,16 @@ exports.totalproductsclientsmanagersspecialists = catchAsync(
     // const sources = await Source.find();
 
     res.status(200).json({
-      totalclients: totalclients.length,
-      totalproducts: totalproducts.length,
-      approvedproducts: approvedproducts.length,
-      unassignedproducts: unassignedproducts.length,
-      assignedproducts: assignedproducts.length,
-      pendingproducts: pendingproducts.length,
-      sourcingmanagers: sourcingmanagers.length,
-      accountmanagers: accountmanagers.length,
-      specialists: specialists.length,
-      sources: sources.length,
+      totalclients: totalclients,
+      totalproducts: totalproducts,
+      approvedproducts: approvedproducts,
+      unassignedproducts: unassignedproducts,
+      assignedproducts: assignedproducts,
+      pendingproducts: pendingproducts,
+      sourcingmanagers: sourcingmanagers,
+      accountmanagers: accountmanagers,
+      specialists: specialists,
+      sources: sources,
     });
   }
 );
