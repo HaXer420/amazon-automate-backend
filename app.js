@@ -32,6 +32,7 @@ app.use(
     origin: [
       'http://localhost:3000',
       'https://main.d445q1t59fkda.amplifyapp.com',
+      'https://amazon-automation-services.vercel.app',
     ],
   })
 );
