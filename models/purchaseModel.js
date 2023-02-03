@@ -1,22 +1,26 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 
-const transactionSchema = new mongoose.Schema(
+const purchaseSchema = new mongoose.Schema(
   {
-    amount: {
-      type: Number,
-      required: [true, 'Must Enter Amount'],
+    description: {
+      type: String,
     },
+    quantity: Number,
+    unitCost: Number,
+    totalCost: Number,
+    sku: String,
+    supplier: String,
+    receivedqty: Number,
     status: {
       type: String,
-      enum: ['Deposit', 'Withdraw', 'Pending', 'Product Purchased'],
-      required: [true, 'Must Enter Status'],
+      enum: ['Inbound', 'Received'],
+      default: 'Inbound',
     },
-    remainingbalance: Number,
-    description: String,
     createdAt: {
+      type: Date,
+      default: Date.now(),
+    },
+    updateAt: {
       type: Date,
       default: Date.now(),
     },
@@ -28,6 +32,10 @@ const transactionSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'Client',
     },
+    transaction: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Transaction',
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -35,7 +43,7 @@ const transactionSchema = new mongoose.Schema(
   }
 );
 
-transactionSchema.pre(/^find/, function (next) {
+purchaseSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'accountmanager',
     select: 'name',
@@ -47,6 +55,6 @@ transactionSchema.pre(/^find/, function (next) {
   next();
 });
 
-const Transaction = mongoose.model('Transaction', transactionSchema);
+const Purchase = mongoose.model('Purchase', purchaseSchema);
 
-module.exports = Transaction;
+module.exports = Purchase;

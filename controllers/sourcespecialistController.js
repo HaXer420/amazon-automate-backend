@@ -48,13 +48,103 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.getprofile = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate))
+    return next(new AppError('Must Send Query!', 400));
+
+  // console.log(req.query);
+
+  const matchStage =
+    req.query.dateRange === 'thisMonth'
+      ? {
+          $and: [
+            { createdAt: { $gte: new Date(new Date().setDate(1)) } },
+            { createdAt: { $lt: new Date() } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.dateRange === 'lastYear'
+      ? {
+          $and: [
+            {
+              createdAt: { $gte: new Date(new Date().getFullYear() - 1, 0, 1) },
+            },
+            { createdAt: { $lt: new Date(new Date().getFullYear(), 0, 1) } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.dateRange === 'lastMonth'
+      ? {
+          $and: [
+            {
+              createdAt: {
+                $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+              },
+            },
+            { createdAt: { $lt: new Date(new Date().setDate(1)) } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.dateRange === 'thisWeek'
+      ? {
+          $and: [
+            {
+              createdAt: {
+                $gte: new Date(
+                  new Date().setDate(new Date().getDate() - new Date().getDay())
+                ),
+              },
+            },
+            { createdAt: { $lt: new Date() } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.dateRange === 'thisYear'
+      ? {
+          $and: [
+            {
+              createdAt: {
+                $gte: new Date(new Date().getFullYear(), 0, 1),
+              },
+            },
+            { createdAt: { $lt: new Date() } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.dateRange === 'all'
+      ? {
+          $and: [
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : req.query.startDate && req.query.endDate
+      ? {
+          $and: [
+            {
+              createdAt: {
+                $gte: new Date(req.query.startDate),
+              },
+            },
+            { createdAt: { $lt: new Date(req.query.endDate) } },
+            { isApproved: { $eq: true } },
+            { status: { $eq: `Approved` } },
+          ],
+        }
+      : {};
+
   const doc = await Specialist.findById(req.params.id)
     .select('name email passwordChangedAt photo role sourcemanager')
     .populate({
       path: 'products',
-      match: {
-        $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
-      },
+      match: matchStage,
+      // {
+      //   $and: [{ isApproved: { $eq: true } }, { status: { $eq: `Approved` } }],
+      // },
       select: '-feedbackmanager -client',
     });
 

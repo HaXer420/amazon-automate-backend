@@ -104,6 +104,7 @@ exports.assignproducttoclient = catchAsync(async (req, res, next) => {
 
   product.client = req.body.client;
   product.isAssigned = true;
+  product.assignedAt = Date.now();
   product.save();
 
   res.status(200).json({

@@ -93,6 +93,13 @@ router.get(
 );
 
 router.get(
+  '/assigned',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ProductController.assignedproducts
+);
+
+router.get(
   '/totalpurcasecostforeachspecialist',
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Sourcing'),

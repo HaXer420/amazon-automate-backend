@@ -8,6 +8,10 @@ const productSchema = mongoose.Schema(
       required: [true, 'must enter asin'],
     },
     productname: String,
+    sku: {
+      type: String,
+      unique: [true, 'SKU Already Exists'],
+    },
     sourcename: String,
     sourceurl: String,
     purchasecost: Number,
@@ -42,6 +46,10 @@ const productSchema = mongoose.Schema(
       default: Date.now(),
     },
     updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    assignedAt: {
       type: Date,
       default: Date.now,
     },
