@@ -11,7 +11,7 @@ const transactionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Deposit', 'Withdraw', 'Pending', 'Product Purchased'],
+      enum: ['Deposit', 'Withdraw', 'Pending', 'Purchased', 'Refund'],
       required: [true, 'Must Enter Status'],
     },
     remainingbalance: Number,

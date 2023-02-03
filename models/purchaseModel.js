@@ -10,7 +10,11 @@ const purchaseSchema = new mongoose.Schema(
     totalCost: Number,
     sku: String,
     supplier: String,
-    receivedqty: Number,
+    inboundqty: Number,
+    receivedqty: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: ['Inbound', 'Received'],
@@ -35,6 +39,10 @@ const purchaseSchema = new mongoose.Schema(
     transaction: {
       type: mongoose.Schema.ObjectId,
       ref: 'Transaction',
+    },
+    product: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Product',
     },
   },
   {

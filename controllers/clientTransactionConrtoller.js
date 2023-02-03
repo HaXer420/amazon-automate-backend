@@ -17,16 +17,18 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
       )
     );
 
+  console.log(`${client.balance},,,,,,,${req.body.amount}`);
+
   if (req.body.status === 'Deposit')
-    req.body.remainingbalance = client.balance + req.body.amount;
+    req.body.remainingbalance = client.balance * 1 + req.body.amount * 1;
 
   if (req.body.status === 'Withdraw')
-    req.body.remainingbalance = client.balance - req.body.amount;
+    req.body.remainingbalance = client.balance * 1 - req.body.amount * 1;
 
   const transac = {
     amount: req.body.amount,
     description: req.body.description,
-    remainingbalance: req.body.remainingbalance,
+    remainingbalance: req.body.remainingbalance * 1,
     status: req.body.status,
     accountmanager: req.user.id,
     client: req.params.id,
@@ -34,7 +36,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
   const transaction = await Transaction.create(transac);
 
-  client.balance = req.body.remainingbalance;
+  client.balance = req.body.remainingbalance * 1;
   client.save({ validateBeforeSave: false });
 
   res.status(201).json({

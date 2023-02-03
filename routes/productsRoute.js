@@ -106,4 +106,11 @@ router.get(
   ProductController.totalpurchasecostforeachspecialist
 );
 
+router.get(
+  '/productsbyclient/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ProductController.clientsproductsbyAcmanager
+);
+
 module.exports = router;

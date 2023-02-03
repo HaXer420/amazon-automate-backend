@@ -459,7 +459,7 @@ exports.totalpurchasecostforeachspecialist = catchAsync(
 
 exports.assignedproducts = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(
-    Product.find({ isAssigned: { $eq: true } }),
+    Product.find({ isAssigned: { $eq: true } }).select('-feedbackmanager'),
     req.query
   )
     .filter()
@@ -473,6 +473,27 @@ exports.assignedproducts = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'Success',
     message: 'Assigned Products.',
+    size: products.length,
+    data: products,
+  });
+});
+
+exports.clientsproductsbyAcmanager = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(
+    Product.find({ client: { $eq: req.params.id } }).select('-feedbackmanager'),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
+
+  res.status(200).json({
+    status: 'Success',
+    message: 'Products.',
     size: products.length,
     data: products,
   });
