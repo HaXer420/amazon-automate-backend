@@ -113,4 +113,18 @@ router.get(
   ProductController.clientsproductsbyAcmanager
 );
 
+router.patch(
+  '/smnanageraddsku/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ProductController.SmanageraddSKU
+);
+
+router.get(
+  '/totalapprovedandunassignedasins',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ProductController.accmanagergetApprovedandUnassignedtotals
+);
+
 module.exports = router;

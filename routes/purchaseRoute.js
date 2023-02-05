@@ -19,6 +19,13 @@ router.get(
   PurchaseController.inboundinventoryforaccmanager
 );
 
+router.get(
+  '/received',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.receivedinventoryforaccmanager
+);
+
 router.patch(
   '/updateinventory/:id',
   ManagersauthController.protect,
@@ -26,12 +33,19 @@ router.patch(
   PurchaseController.updateInventory
 );
 
-// router.delete(
-//   '/delete/:id',
-//   AdminauthController.protect,
-//   AdminauthController.restrictTo('admin'),
-//   SourceController.deleteSource
-// );
+router.patch(
+  '/updateunitcost/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.updateUnitCost
+);
+
+router.delete(
+  '/delete/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.deletePurchaseOrder
+);
 
 // router.get('/all', SourceController.getallsources);
 

@@ -501,3 +501,35 @@ exports.clientsproductsbyAcmanager = catchAsync(async (req, res, next) => {
     data: products,
   });
 });
+
+exports.SmanageraddSKU = catchAsync(async (req, res, next) => {
+  const preproduct = await Product.findOne({ sku: req.body.sku });
+
+  if (preproduct)
+    return next(new AppError('SKU Already Exist! Please choose another.', 400));
+
+  const product = await Product.findByIdAndUpdate(req.params.id, {
+    sku: req.body.sku,
+  });
+
+  res.status(200).json({
+    status: 'Success',
+    message: 'SKU Added Successfully',
+  });
+});
+
+exports.accmanagergetApprovedandUnassignedtotals = catchAsync(
+  async (req, res, next) => {
+    const [unassignedproducts, approvedproducts] = await Promise.all([
+      Product.countDocuments({
+        $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
+      }),
+      Product.countDocuments({ status: { $eq: 'Approved' } }),
+    ]);
+
+    res.status(200).json({
+      approvedproducts: approvedproducts,
+      unassignedproducts: unassignedproducts,
+    });
+  }
+);

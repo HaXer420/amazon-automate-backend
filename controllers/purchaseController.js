@@ -91,6 +91,23 @@ exports.inboundinventoryforaccmanager = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.receivedinventoryforaccmanager = catchAsync(async (req, res, next) => {
+  const inventory = await Purchase.find({
+    $and: [
+      {
+        receivedqty: { $ne: 0 },
+      },
+      { accountmanager: { $eq: req.user.id } },
+    ],
+  });
+
+  res.status(200).json({
+    status: 'Success',
+    size: inventory.length,
+    inventory,
+  });
+});
+
 exports.updateInventory = catchAsync(async (req, res, next) => {
   const purchase = await Purchase.findById(req.params.id);
 
@@ -99,6 +116,10 @@ exports.updateInventory = catchAsync(async (req, res, next) => {
   const product = await Product.findById(purchase.product);
 
   const client = await Client.findById(purchase.client);
+
+  if (req.body.unitcost) {
+    req.body.unitcost = undefined;
+  }
 
   if (!req.body.receivedqty && req.body.canceledqty && req.body.unitcost)
     req.body.unitcost = undefined;
@@ -185,6 +206,9 @@ exports.updateInventory = catchAsync(async (req, res, next) => {
   const updatepurchase = {
     unitCost: unitcost,
     totalCost: newtotalcost,
+    quantity: req.body.canceledqty
+      ? purchase.quantity - req.body.canceledqty
+      : purchase.quantity,
     inboundqty: currentinboundqty,
     receivedqty: receivedquantity,
     canceledqty: req.body.canceledqty
@@ -216,6 +240,113 @@ exports.updateInventory = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.getallsources = factory.getAll(Source);
+exports.updateUnitCost = catchAsync(async (req, res, next) => {
+  const order = await Purchase.findById(req.params.id);
+  const client = await Client.findById(order.client);
+  const product = await Product.findById(order.product);
+  const trans = await Transaction.findById(order.transaction);
 
-// exports.deleteSource = factory.deleteOne(Source);
+  if (order.totalCost === req.body.unitcost) {
+    return next(new AppError(`Cannot enter same unit cost`, 400));
+  }
+
+  if (order.receivedqty > 0) {
+    return next(
+      new AppError(
+        `Once a product is received Unit Cost cannot be changed, Current Received Qty: ${order.receivedqty}`,
+        400
+      )
+    );
+  }
+
+  let unitcost = req.body.unitcost * 1;
+
+  const totalcost = order.quantity * unitcost;
+
+  const newdeduction =
+    totalcost > order.totalCost
+      ? totalcost - order.totalCost
+      : order.totalCost - totalcost;
+
+  const newbalance =
+    totalcost > order.totalCost
+      ? client.balance - newdeduction
+      : client.balance + newdeduction;
+
+  const desc = `For Order of Product ${product.productname} ${
+    totalcost > order.totalCost
+      ? `Deduction of ${newdeduction} made.`
+      : `Refund of ${newdeduction} made.`
+  }`;
+
+  const transac = {
+    amount: newdeduction,
+    description: desc,
+    remainingbalance: newbalance,
+    status: 'Adjustment',
+    updatedAt: Date.now(),
+  };
+
+  const updatepurchase = {
+    unitCost: unitcost,
+    totalCost: totalcost,
+    updateAt: Date.now(),
+  };
+
+  client.balance = newbalance;
+
+  await Promise.all([
+    Transaction.findByIdAndUpdate(trans.id, transac),
+    Purchase.findByIdAndUpdate(order.id, updatepurchase),
+    client.save({ validateBeforeSave: false }),
+  ]);
+
+  res.status(200).json({
+    status: 'Success',
+    message: desc,
+  });
+});
+
+exports.deletePurchaseOrder = catchAsync(async (req, res, next) => {
+  const purchase = await Purchase.findById(req.params.id);
+  const client = await Client.findById(purchase.client);
+  const product = await Product.findById(purchase.product);
+
+  if (!purchase) {
+    return next(new AppError(`Order not found`, 400));
+  }
+
+  const trans = await Transaction.findById(purchase.transaction);
+
+  if (purchase.receivedqty > 0) {
+    return next(
+      new AppError(
+        `Order can only be deleted if no Product is received yet, Current Received Products: ${purchase.receivedqty}`,
+        400
+      )
+    );
+  }
+
+  const desc = `For Product ${product.name} Purchase order of ${purchase.quantity} products got deleted and Amount ${purchase.totalCost} refunded.`;
+
+  client.balance = client.balance + purchase.totalCost;
+
+  const transac = {
+    amount: purchase.totalCost,
+    description: desc,
+    remainingbalance: client.balance,
+    status: 'Refund',
+    updatedAt: Date.now(),
+  };
+
+  await Promise.all([
+    Purchase.findByIdAndDelete(req.params.id),
+    Transaction.findByIdAndUpdate(transaciton.id, transac),
+    client.save({ validateBeforeSave: false }),
+  ]);
+
+  res.status(200).json({
+    status: 'Success',
+    message: desc,
+  });
+});
