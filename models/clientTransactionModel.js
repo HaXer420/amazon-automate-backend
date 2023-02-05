@@ -11,11 +11,22 @@ const transactionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Deposit', 'Withdraw', 'Pending', 'Purchased', 'Refund'],
+      enum: [
+        'Deposit',
+        'Withdraw',
+        'Pending',
+        'Purchased',
+        'Refund',
+        'Adjustment',
+      ],
       required: [true, 'Must Enter Status'],
     },
     remainingbalance: Number,
     description: String,
+    updatedAt: {
+      type: Date,
+      default: Date.now(),
+    },
     createdAt: {
       type: Date,
       default: Date.now(),

@@ -1,5 +1,5 @@
 const express = require('express');
-const PurchaseController = require('../controllers/purchaseConroller');
+const PurchaseController = require('../controllers/purchaseController');
 const AdminauthController = require('../controllers/adminauthController');
 const ManagersauthController = require('../controllers/managersauthController');
 
@@ -10,6 +10,20 @@ router.post(
   ManagersauthController.protect,
   ManagersauthController.restrictTo('Account'),
   PurchaseController.createPurchase
+);
+
+router.get(
+  '/inbound',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.inboundinventoryforaccmanager
+);
+
+router.patch(
+  '/updateinventory/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.updateInventory
 );
 
 // router.delete(

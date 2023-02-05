@@ -9,23 +9,26 @@ const Specialist = require('../models/sourcespecialistModel');
 exports.checkexistingproducts = catchAsync(async (req, res, next) => {
   const product = await Product.findOne({ asin: `${req.body.asin}` });
   if (!product) next();
-  if (product.projectedprofitmargin > req.body.projectedprofitmargin) {
-    res.status(200).json({
-      status: 'Already Exist Better Product',
-      better: 'no',
-      desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
-      existingproduct: product,
-      yourproduct: req.body,
-    });
-  }
-  if (product.projectedprofitmargin < req.body.projectedprofitmargin) {
-    res.status(200).json({
-      status: 'Your Product has better Profit Margin',
-      better: 'yes',
-      desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
-      existingproduct: product,
-      yourproduct: req.body,
-    });
+
+  if (product) {
+    if (product.projectedprofitmargin > req.body.projectedprofitmargin) {
+      res.status(200).json({
+        status: 'Already Exist Better Product',
+        better: 'no',
+        desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
+        existingproduct: product,
+        yourproduct: req.body,
+      });
+    }
+    if (product.projectedprofitmargin < req.body.projectedprofitmargin) {
+      res.status(200).json({
+        status: 'Your Product has better Profit Margin',
+        better: 'yes',
+        desc: `Profit Margin of Existing Product is: ${product.projectedprofitmargin}, While your Product Profit Margin is ${product.projectedprofitmargin}`,
+        existingproduct: product,
+        yourproduct: req.body,
+      });
+    }
   }
   next();
 });
