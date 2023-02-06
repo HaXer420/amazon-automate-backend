@@ -1,4 +1,5 @@
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const express = require('express');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
@@ -16,6 +17,7 @@ const productRouter = require('./routes/productsRoute');
 const transactionRouter = require('./routes/clientTransactionRoute');
 const utilsRouter = require('./routes/utilsRoute');
 const purchaseRouter = require('./routes/purchaseRoute');
+const reportRouter = require('./routes/reportRoute');
 const chatRouter = require('./routes/chatRoute');
 
 dotenv.config({ path: './config.env' });
@@ -40,6 +42,9 @@ app.use(
 
 app.options('*', cors());
 
+app.use(bodyParser.json({ limit: '2000kb' }));
+app.use(bodyParser.urlencoded({ limit: '2000kb', extended: true }));
+
 app.use(logger('dev'));
 app.use(express.json());
 
@@ -62,6 +67,7 @@ app.use('/api/v1/transaction', transactionRouter);
 app.use('/api/v1/utils', utilsRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/purchase', purchaseRouter);
+app.use('/api/v1/report', reportRouter);
 
 /// logout route
 app.get('/logout/:id', factory.globalLogout);

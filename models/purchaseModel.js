@@ -10,9 +10,15 @@ const purchaseSchema = new mongoose.Schema(
     totalCost: Number,
     sku: String,
     supplier: String,
-    soldqty: Number,
+    soldqty: {
+      type: Number,
+      default: 0,
+    },
     inboundqty: Number,
-    canceledqty: Number,
+    canceledqty: {
+      type: Number,
+      default: 0,
+    },
     receivedqty: {
       type: Number,
       default: 0,
