@@ -17,7 +17,7 @@ exports.createReport = catchAsync(async (req, res, next) => {
 
   const endofreport = body.length - 1;
 
-  const startdatereport = body[0]['date/time'];
+  let startdatereport = body[0]['date/time'];
   const enddatereport = body[endofreport]['date/time'];
 
   console.log(startdatereport, enddatereport);
@@ -30,27 +30,63 @@ exports.createReport = catchAsync(async (req, res, next) => {
   //     ],
   //   });
 
-  const checkreport = await Report.aggregate([
-    {
-      $match: {
-        $expr: {
-          $and: [
-            { $gte: ['$date_time', new Date(startdatereport)] },
-            // { $lte: ['$date_time', new Date(enddatereport)] },
-            {
-              $eq: ['$client', mongoose.Types.ObjectId(req.params.id)],
-            },
-          ],
+  for (let i = 0; i < body.length; i++) {
+    startdatereport = body[i]['date/time'];
+
+    const checkreport = await Report.aggregate([
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$date_time', new Date(startdatereport)] },
+              // { $lte: ['$date_time', new Date(enddatereport)] },
+              {
+                $eq: ['$client', mongoose.Types.ObjectId(req.params.id)],
+              },
+            ],
+          },
         },
       },
-    },
-  ]);
-  //   console.log(checkreport.length);
+    ]);
+    //   console.log(checkreport.length);
 
-  if (!checkreport === undefined || !checkreport.length == 0)
-    return next(
-      new AppError(`Report Date: ${startdatereport}  Already Exist!`, 400)
-    );
+    if (!checkreport === undefined || !checkreport.length == 0) {
+      return next(
+        new AppError(`Report Date: ${startdatereport}  Already Exist!`, 400)
+      );
+    }
+
+    // if (array[i].name === 'Jane') {
+    //   console.log('Required thing found:', array[i]);
+    //   break;
+    // }
+  }
+
+  // body.map(async (report) => {
+  //   startdatereport = report['date/time'];
+
+  //   const checkreport = await Report.aggregate([
+  //     {
+  //       $match: {
+  //         $expr: {
+  //           $and: [
+  //             { $gte: ['$date_time', new Date(startdatereport)] },
+  //             // { $lte: ['$date_time', new Date(enddatereport)] },
+  //             {
+  //               $eq: ['$client', mongoose.Types.ObjectId(req.params.id)],
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   ]);
+  //   //   console.log(checkreport.length);
+
+  //   if (!checkreport === undefined || !checkreport.length == 0)
+  //     return next(
+  //       new AppError(`Report Date: ${startdatereport}  Already Exist!`, 400)
+  //     );
+  // });
 
   const newReports = await Promise.all(
     body.map(async (report) => {
