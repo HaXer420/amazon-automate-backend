@@ -52,7 +52,7 @@ exports.getprofile = catchAsync(async (req, res, next) => {
   const doc = await Client.findById(req.params.id)
     .select('name email passwordChangedAt photo role balance')
     .populate({ path: 'products', select: '-feedbackmanager -specialist' })
-    .populate({ path: 'transactions' });
+    .populate({ path: 'transactions', options: { sort: { updatedAt: -1 } } });
 
   // const doc = await Model.findById(req.params.id).populate('reviews');
 
