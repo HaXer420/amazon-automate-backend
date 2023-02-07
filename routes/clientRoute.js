@@ -62,4 +62,11 @@ router.patch(
   ClientController.assignproducttoclient
 );
 
+router.patch(
+  '/deleteproductfromclient/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ClientController.deleteproductfromclient
+);
+
 module.exports = router;

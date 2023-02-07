@@ -114,6 +114,30 @@ exports.assignproducttoclient = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.deleteproductfromclient = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product || product.client)
+    return next(new AppError('Product Does not exist!', 400));
+  if (product.isApproved === false || product.status === 'Rejected')
+    return next(
+      new AppError('Product is not approved yet or got Rejected', 400)
+    );
+
+  const client = await Client.findById(product.client);
+
+  product.client = undefined;
+  product.isAssigned = false;
+  product.assignedAt = Date.now();
+  product.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: `Product ${product.productname} Successfully Removed from Client ${client.name}`,
+    data: product,
+  });
+});
+
 exports.accgethisclients = catchAsync(async (req, res, next) => {
   const client = await Client.find({ accountmanager: { $eq: req.user.id } });
 
