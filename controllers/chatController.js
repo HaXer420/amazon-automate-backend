@@ -4,25 +4,49 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
 exports.createChat = catchAsync(async (req, res, next) => {
-  const chat = await Chat.find({
-    $and: [
-      { client: { $eq: req.user.id } },
-      { accountmanager: { $eq: req.user.accountmanager } },
-    ],
-  });
+  if (req.user.role === 'Client') {
+    const chat = await Chat.find({
+      $and: [
+        { client: { $eq: `${req.user.id}` } },
+        { accountmanager: { $eq: `${req.user.accountmanager}` } },
+      ],
+    });
 
-  if (!chat) return next(new AppError('Chat Already Exist!', 400));
+    if (chat) return next(new AppError('Chat Already Exist!', 400));
 
-  const messages = [
-    {
-      message: req.body.message,
-      name: req.user.name,
-    },
-  ];
+    const messages = [
+      {
+        message: req.body.message,
+        name: req.user.name,
+      },
+    ];
 
-  req.body.client = req.user.id;
-  req.body.accountmanager = req.user.accountmanager;
-  req.body.messages = messages;
+    req.body.client = req.user.id;
+    req.body.accountmanager = req.user.accountmanager;
+    req.body.messages = messages;
+  }
+
+  if (req.user.role === 'Account') {
+    const chat = await Chat.find({
+      $and: [
+        { client: { $eq: `${req.params.id}` } },
+        { accountmanager: { $eq: `${req.user.id}` } },
+      ],
+    });
+
+    if (chat) return next(new AppError('Chat Already Exist!', 400));
+
+    const messages = [
+      {
+        message: req.body.message,
+        name: req.user.name,
+      },
+    ];
+
+    req.body.client = req.params.id;
+    req.body.accountmanager = req.user.id;
+    req.body.messages = messages;
+  }
 
   const chatcreate = await Chat.create(req.body);
 

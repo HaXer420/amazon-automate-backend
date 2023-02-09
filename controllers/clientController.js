@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Manager = require('../models/managersModel');
 const Product = require('../models/productsModel');
+const Chat = require('../models/chatModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -77,6 +78,31 @@ exports.assignclienttoaccmanager = catchAsync(async (req, res, next) => {
   const manager = await Manager.findById(req.body.accountmanager);
 
   if (!manager) return next(new AppError('Manager not found', 400));
+
+  const oldchat = await Chat.findOne({
+    $and: [
+      { client: req.params.id },
+      { accountmanager: req.body.accountmanager },
+    ],
+  });
+
+  turnoffold = await Chat.findOne({
+    $and: [
+      { client: req.params.id },
+      { accountmanager: { $ne: req.body.accountmanager } },
+      { isClosed: false },
+    ],
+  });
+
+  if (turnoffold) {
+    turnoffold.isClosed = true;
+    await turnoffold.save();
+  }
+
+  if (oldchat) {
+    oldchat.isClosed = false;
+    await oldchat.save();
+  }
 
   client.accountmanager = req.body.accountmanager;
   client.save({ validateBeforeSave: false });

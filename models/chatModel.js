@@ -18,6 +18,10 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isClosed: {
+      type: Boolean,
+      default: false,
+    },
     messages: [
       {
         name: String,

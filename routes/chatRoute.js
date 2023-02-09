@@ -10,6 +10,14 @@ router
   .post(ClientauthController.protect, ChatController.createChat);
 
 router
+  .route('/create/:id')
+  .post(
+    ManagersauthController.protect,
+    ManagersauthController.restrictTo('Account'),
+    ChatController.createChat
+  );
+
+router
   .route('/getchatclient')
   .get(ClientauthController.protect, ChatController.getChats);
 
