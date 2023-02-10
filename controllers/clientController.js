@@ -5,6 +5,7 @@ const AppError = require('../utils/appError');
 const Manager = require('../models/managersModel');
 const Product = require('../models/productsModel');
 const Chat = require('../models/chatModel');
+const Purchase = require('../models/purchaseModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -151,6 +152,45 @@ exports.deleteproductfromclient = catchAsync(async (req, res, next) => {
     );
 
   const client = await Client.findById(product.client);
+
+  const purchase = await Purchase.find({
+    $and: [
+      { client: client.id },
+      { accountmanager: req.user.id },
+      { status: 'Inbound' },
+      { inboundqty: { $gt: 0 } },
+    ],
+  });
+
+  if (purchase.length > 0) {
+    let amount = 0;
+
+    const fitler = purchase.map(async (prod) => {
+      const singleprod = await Purchase.findById(prod.id);
+
+      singleprod.inboundqty = 0;
+      singleprod.status = 'Received';
+
+      amount = amount + singleprod.inboundqty * singleprod.unitCost;
+
+      await singleprod.save();
+    });
+
+    client.balance = client.balance + amount;
+
+    await client.save({ validateBeforeSave: false });
+
+    const transac = {
+      amount: amount,
+      description: `Refund of amount: ${amount}. Reason: Product ${product.productname} has been removed from your account and its inbound quantity got refunded!`,
+      remainingbalance: client.balance,
+      status: 'Refund',
+      accountmanager: req.user.id,
+      client: client.id,
+    };
+
+    const trans = await Transaction.create(transac);
+  }
 
   product.client = undefined;
   product.isAssigned = false;
