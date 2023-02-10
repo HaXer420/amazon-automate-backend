@@ -11,13 +11,15 @@ exports.createPurchase = catchAsync(async (req, res, next) => {
   if (!product) return next(new AppError('Product not found', 404));
 
   const temppurorder = await Purchase.find({ sku: { $eq: product.sku } });
-  if (temppurorder)
-    return next(
-      new AppError(
-        `Purchase/Inventory order for SKU: ${product.sku} Already Exists!`,
-        404
-      )
-    );
+  // if (temppurorder)
+  //   return next(
+  //     new AppError(
+  //       `Purchase/Inventory order for SKU: ${product.sku} Already Exists!`,
+  //       404
+  //     )
+  //   );
+
+  req.body.unitCost = req.body.unitCost + req.body.warehouseCost;
 
   const client = await Client.findById(req.params.cid);
   if (!client) return next(new AppError('Client not found', 404));
@@ -51,6 +53,7 @@ exports.createPurchase = catchAsync(async (req, res, next) => {
     description: desc,
     quantity: req.body.quantity,
     unitCost: req.body.unitCost,
+    warehouseCost: req.body.warehouseCost,
     totalCost: totalcost,
     sku: product.sku,
     supplier: req.body.supplier,
@@ -211,6 +214,9 @@ exports.updateInventory = catchAsync(async (req, res, next) => {
       : purchase.quantity,
     inboundqty: currentinboundqty,
     receivedqty: receivedquantity,
+    remainingqty: req.body.receivedqty
+      ? purchase.remainingqty + req.body.receivedqty * 1
+      : purchase.remainingqty,
     canceledqty: req.body.canceledqty
       ? purchase.canceledqty + req.body.canceledqty
       : purchase.canceledqty,

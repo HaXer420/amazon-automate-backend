@@ -12,4 +12,13 @@ router.post(
   ReportController.createReport
 );
 
+router.post(
+  '/test/:cid',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ReportController.testing
+);
+
+router.get('/sales', ReportController.totalsales);
+
 module.exports = router;

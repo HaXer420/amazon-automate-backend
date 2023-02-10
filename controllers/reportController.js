@@ -4,6 +4,7 @@ const Product = require('../models/productsModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const Client = require('../models/clientModel');
+const Purchase = require('../models/purchaseModel');
 
 exports.createReport = catchAsync(async (req, res, next) => {
   const { body } = req;
@@ -32,6 +33,21 @@ exports.createReport = catchAsync(async (req, res, next) => {
 
   for (let i = 0; i < body.length; i++) {
     startdatereport = body[i]['date/time'];
+
+    if (body[i].type === 'Order') {
+      const product = await Product.findOne({
+        $and: [{ client: req.params.id }, { sku: { $eq: body[i].sku } }],
+      });
+
+      if (!product) {
+        return next(
+          new AppError(
+            `Product: ${body[i].sku}  not found in the system or may be not assigned to the Client. Please verify the SKU and upload the file again`,
+            400
+          )
+        );
+      }
+    }
 
     const checkreport = await Report.aggregate([
       {
@@ -99,10 +115,35 @@ exports.createReport = catchAsync(async (req, res, next) => {
       //   if (checkreport) return;
 
       if (report.type === 'Order') {
-        const product = await Product.findOne({
-          $and: [{ client: req.params.id }, { sku: { $eq: report.sku } }],
+        const purchase = await Purchase.findOne({
+          $and: [
+            { client: req.params.id },
+            { sku: report.sku },
+            { remainingqty: { $gte: report.quantity * 1 } },
+          ],
         });
-        if (!product) return;
+
+        if (!purchase) {
+          return next(
+            new AppError(
+              'Inventory either not found or lower then the quantity you updating!',
+              400
+            )
+          );
+        }
+
+        if (purchase) {
+          const qty = report.quantity === '' ? 0 : report.quantity * 1;
+
+          purchase.soldqty = purchase.soldqty + qty;
+          purchase.remainingqty = purchase.remainingqty - qty;
+          purchase.save();
+        }
+
+        // const product = await Product.findOne({
+        //   $and: [{ client: req.params.id }, { sku: { $eq: report.sku } }],
+        // });
+        // if (!product) return;
         // console.log(product, report.sku);
         return {
           date_time: new Date(report['date/time']),
@@ -268,5 +309,271 @@ exports.createReport = catchAsync(async (req, res, next) => {
   res.status(201).json({
     size: filteredReports.length,
     filteredReports,
+  });
+});
+
+exports.testing = catchAsync(async (req, res, next) => {
+  const report = await Report.find({
+    $and: [
+      { client: req.params.cid },
+      { sku: req.body.sku },
+      { type: 'Order' },
+    ],
+  });
+
+  // let quanity = 0;
+
+  // const qty = report.map((order) => {
+  //   // console.log(order.quantity);
+  //   quanity = quanity + order.quantity * 1;
+
+  //   return quanity;
+  // });
+  let quanity = 0;
+  report.map((order) => {
+    quanity = quanity + order.quantity * 1;
+  });
+
+  console.log(quanity);
+
+  console.log(report.length);
+});
+
+exports.totalsales = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  // console.log(req.query);
+
+  /////////// for total sales
+
+  const matchStage =
+    req.query.dateRange === 'thisMonth'
+      ? {
+          $and: [
+            { date_time: { $gte: new Date(new Date().setDate(1)) } },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'lastYear'
+      ? {
+          $and: [
+            {
+              date_time: { $gte: new Date(new Date().getFullYear() - 1, 0, 1) },
+            },
+            { date_time: { $lt: new Date(new Date().getFullYear(), 0, 1) } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'lastMonth'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+              },
+            },
+            { date_time: { $lt: new Date(new Date().setDate(1)) } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'thisWeek'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(
+                  new Date().setDate(new Date().getDate() - new Date().getDay())
+                ),
+              },
+            },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'thisYear'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(new Date().getFullYear(), 0, 1),
+              },
+            },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'all'
+      ? {
+          $and: [{ type: 'Order' }],
+        }
+      : req.query.startDate && req.query.endDate
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(req.query.startDate),
+              },
+            },
+            { date_time: { $lt: new Date(req.query.endDate) } },
+            { type: 'Order' },
+          ],
+        }
+      : {};
+
+  const report = await Report.find(matchStage);
+
+  let sales = 0;
+  report.map((order) => {
+    sales = sales + order.total * 1;
+  });
+
+  ////////////////////////////// For graph data
+
+  const matchStagegraph =
+    req.query.dateRange === 'thisMonth'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ['$date_time', new Date(new Date().setDate(1))] },
+                { $lt: ['$date_time', new Date()] },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'lastYear'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().getFullYear() - 1, 0, 1),
+                  ],
+                },
+                {
+                  $lt: ['$date_time', new Date(new Date().getFullYear(), 0, 1)],
+                },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'lastMonth'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                  ],
+                },
+                { $lt: ['$date_time', new Date(new Date().setDate(1))] },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'thisWeek'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(
+                      new Date().setDate(
+                        new Date().getDate() - new Date().getDay()
+                      )
+                    ),
+                  ],
+                },
+                { $lt: ['$date_time', new Date()] },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'thisYear'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().getFullYear(), 0, 1),
+                  ],
+                },
+                { $lt: ['$date_time', new Date()] },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'all'
+      ? {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$type', 'Order'] }],
+            },
+          },
+        }
+      : req.query.startDate && req.query.endDate
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ['$date_time', new Date(req.query.startDate)] },
+                { $lt: ['$date_time', new Date(req.query.endDate)] },
+                { $eq: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : {};
+
+  const reportgraph = await Report.aggregate([
+    matchStagegraph,
+    {
+      $sort: {
+        date_time: 1,
+      },
+    },
+    {
+      $group: {
+        _id: '$date_time',
+        total: { $sum: '$total' },
+      },
+    },
+    {
+      $project: {
+        date_time: '$_id',
+        total: 1,
+        _id: 0,
+      },
+    },
+  ]);
+
+  const sortedReport = reportgraph.sort((a, b) => {
+    return new Date(a.date_time) - new Date(b.date_time);
+  });
+
+  // console.log(sortedReport);
+
+  // console.log(sales);
+
+  res.status(200).json({
+    status: 'Success',
+    total: sales,
+    graph: sortedReport,
   });
 });

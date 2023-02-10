@@ -16,7 +16,7 @@ const reportSchema = new mongoose.Schema(
     },
     specialist: {
       type: mongoose.Schema.ObjectId,
-      ref: 'Client',
+      ref: 'Specialist',
     },
     product: {
       type: mongoose.Schema.ObjectId,

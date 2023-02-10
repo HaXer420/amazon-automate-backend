@@ -7,10 +7,15 @@ const purchaseSchema = new mongoose.Schema(
     },
     quantity: Number,
     unitCost: Number,
+    warehouseCost: Number,
     totalCost: Number,
     sku: String,
     supplier: String,
     soldqty: {
+      type: Number,
+      default: 0,
+    },
+    remainingqty: {
       type: Number,
       default: 0,
     },
