@@ -116,7 +116,7 @@ router.get(
 router.patch(
   '/smnanageraddsku/:id',
   ManagersauthController.protect,
-  ManagersauthController.restrictTo('Account'),
+  ManagersauthController.restrictTo('Sourcing'),
   ProductController.SmanageraddSKU
 );
 
