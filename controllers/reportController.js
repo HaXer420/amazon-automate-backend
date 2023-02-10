@@ -312,33 +312,6 @@ exports.createReport = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.testing = catchAsync(async (req, res, next) => {
-  const report = await Report.find({
-    $and: [
-      { client: req.params.cid },
-      { sku: req.body.sku },
-      { type: 'Order' },
-    ],
-  });
-
-  // let quanity = 0;
-
-  // const qty = report.map((order) => {
-  //   // console.log(order.quantity);
-  //   quanity = quanity + order.quantity * 1;
-
-  //   return quanity;
-  // });
-  let quanity = 0;
-  report.map((order) => {
-    quanity = quanity + order.quantity * 1;
-  });
-
-  console.log(quanity);
-
-  console.log(report.length);
-});
-
 exports.totalsales = catchAsync(async (req, res, next) => {
   if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
     req.query.dateRange = 'all';
