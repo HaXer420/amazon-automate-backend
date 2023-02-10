@@ -577,3 +577,273 @@ exports.totalsales = catchAsync(async (req, res, next) => {
     graph: sortedReport,
   });
 });
+
+exports.totalprofit = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  // console.log(req.query);
+
+  /////////// for total sales
+
+  const matchStage =
+    req.query.dateRange === 'thisMonth'
+      ? {
+          $and: [
+            { date_time: { $gte: new Date(new Date().setDate(1)) } },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'lastYear'
+      ? {
+          $and: [
+            {
+              date_time: { $gte: new Date(new Date().getFullYear() - 1, 0, 1) },
+            },
+            { date_time: { $lt: new Date(new Date().getFullYear(), 0, 1) } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'lastMonth'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+              },
+            },
+            { date_time: { $lt: new Date(new Date().setDate(1)) } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'thisWeek'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(
+                  new Date().setDate(new Date().getDate() - new Date().getDay())
+                ),
+              },
+            },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'thisYear'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(new Date().getFullYear(), 0, 1),
+              },
+            },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
+      : req.query.dateRange === 'all'
+      ? {
+          $and: [{ type: 'Order' }],
+        }
+      : req.query.startDate && req.query.endDate
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(req.query.startDate),
+              },
+            },
+            { date_time: { $lt: new Date(req.query.endDate) } },
+            { type: 'Order' },
+          ],
+        }
+      : {};
+
+  const report = await Report.find(matchStage);
+
+  let totalcost = 0;
+  let profit = 0;
+
+  const filter1 = await Promise.all(
+    report.map(async (object) => {
+      const avgUnitCost = await Purchase.aggregate([
+        {
+          $match: { sku: object.sku },
+        },
+        {
+          $group: {
+            _id: null,
+            avgUnitCost: { $avg: '$unitCost' },
+          },
+        },
+      ]);
+      totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
+      let objprofit = object.total * 1 - totalcost * 1;
+      profit = profit + objprofit;
+      // console.log(profit);
+    })
+  );
+
+  const filter1Graph = await Promise.all(
+    report.map(async (object) => {
+      const avgUnitCost = await Purchase.aggregate([
+        {
+          $match: { sku: object.sku },
+        },
+        {
+          $group: {
+            _id: '$date_time',
+            avgUnitCost: { $avg: '$unitCost' },
+          },
+        },
+      ]);
+      return {
+        date_time: object.date_time,
+        quanity: object.quantity * 1,
+        totalcost: avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
+        objprofit:
+          object.total * 1 -
+          avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
+      };
+    })
+  );
+
+  const sortedFilter1Graph = filter1Graph.sort((a, b) => {
+    return new Date(a.date_time) - new Date(b.date_time);
+  });
+
+  ////////// for deduction o refund, fee etc
+
+  const matchStagededuction =
+    req.query.dateRange === 'thisMonth'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ['$date_time', new Date(new Date().setDate(1))] },
+                { $lt: ['$date_time', new Date()] },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'lastYear'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().getFullYear() - 1, 0, 1),
+                  ],
+                },
+                {
+                  $lt: ['$date_time', new Date(new Date().getFullYear(), 0, 1)],
+                },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'lastMonth'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                  ],
+                },
+                { $lt: ['$date_time', new Date(new Date().setDate(1))] },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'thisWeek'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(
+                      new Date().setDate(
+                        new Date().getDate() - new Date().getDay()
+                      )
+                    ),
+                  ],
+                },
+                { $lt: ['$date_time', new Date()] },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'thisYear'
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$date_time',
+                    new Date(new Date().getFullYear(), 0, 1),
+                  ],
+                },
+                { $lt: ['$date_time', new Date()] },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : req.query.dateRange === 'all'
+      ? {
+          $match: {
+            $expr: {
+              $and: [{ $ne: ['$type', 'Order'] }],
+            },
+          },
+        }
+      : req.query.startDate && req.query.endDate
+      ? {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ['$date_time', new Date(req.query.startDate)] },
+                { $lt: ['$date_time', new Date(req.query.endDate)] },
+                { $ne: ['$type', 'Order'] },
+              ],
+            },
+          },
+        }
+      : {};
+
+  const pipeline = [
+    matchStagededuction,
+    {
+      $group: {
+        _id: null,
+        sumTotal: { $sum: '$total' },
+      },
+    },
+  ];
+
+  const result = await Report.aggregate(pipeline);
+  // console.log(result[0].sumTotal);
+  console.log(result);
+  result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+
+  res.status(200).json({
+    status: 'Success',
+    total: profit,
+    graph: sortedFilter1Graph,
+  });
+});

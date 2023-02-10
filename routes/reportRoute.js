@@ -20,5 +20,6 @@ router.post(
 );
 
 router.get('/sales', ReportController.totalsales);
+router.get('/profits', ReportController.totalprofit);
 
 module.exports = router;
