@@ -514,6 +514,28 @@ exports.totalsales = catchAsync(async (req, res, next) => {
         }
       : {};
 
+  // const reportgraph = await Report.aggregate([
+  //   matchStagegraph,
+  //   {
+  //     $sort: {
+  //       date_time: 1,
+  //     },
+  //   },
+  //   {
+  //     $group: {
+  //       _id: '$date_time',
+  //       total: { $sum: '$total' },
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       date_time: '$_id',
+  //       total: 1,
+  //       _id: 0,
+  //     },
+  //   },
+  // ]);
+
   const reportgraph = await Report.aggregate([
     matchStagegraph,
     {
@@ -523,7 +545,12 @@ exports.totalsales = catchAsync(async (req, res, next) => {
     },
     {
       $group: {
-        _id: '$date_time',
+        _id: {
+          $dateToString: {
+            format: '%Y-%m-%d',
+            date: '$date_time',
+          },
+        },
         total: { $sum: '$total' },
       },
     },
