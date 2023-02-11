@@ -1,3 +1,4 @@
+const moment = require('moment');
 const Report = require('../models/reportModel');
 const mongoose = require('mongoose');
 const Product = require('../models/productsModel');
@@ -701,7 +702,7 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
         },
       ]);
       return {
-        date_time: object.date_time,
+        date_time: moment(object.date_time).format('YYYY-MM-DD'),
         quanity: object.quantity * 1,
         totalcost: avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
         objprofit:
@@ -838,7 +839,7 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
 
   const result = await Report.aggregate(pipeline);
   // console.log(result[0].sumTotal);
-  console.log(result);
+  // console.log(result);
   result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
 
   res.status(200).json({
