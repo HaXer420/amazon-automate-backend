@@ -10,7 +10,8 @@ const Purchase = require('../models/purchaseModel');
 exports.createReport = catchAsync(async (req, res, next) => {
   // console.log(req.body);
   const body = req.body.json;
-  console.log(body);
+
+  // console.log(body);
 
   const client = await Client.findById(req.params.id);
 
@@ -23,7 +24,7 @@ exports.createReport = catchAsync(async (req, res, next) => {
   let startdatereport = body[0]['date/time'];
   const enddatereport = body[endofreport]['date/time'];
 
-  console.log(startdatereport, enddatereport);
+  // console.log(startdatereport, enddatereport);
 
   //   const checkreport = await Report.find({
   //     $and: [
