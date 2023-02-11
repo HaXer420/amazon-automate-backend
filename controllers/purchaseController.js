@@ -111,6 +111,26 @@ exports.receivedinventoryforaccmanager = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.lowinventory = catchAsync(async (req, res, next) => {
+  const inventory = await Purchase.find({
+    $and: [
+      {
+        receivedqty: { $ne: 0 },
+      },
+      {
+        remainingqty: { $lt: 10 },
+      },
+      { accountmanager: { $eq: req.user.id } },
+    ],
+  });
+
+  res.status(200).json({
+    status: 'Success',
+    size: inventory.length,
+    inventory,
+  });
+});
+
 exports.updateInventory = catchAsync(async (req, res, next) => {
   const purchase = await Purchase.findById(req.params.id);
 

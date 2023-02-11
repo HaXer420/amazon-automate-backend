@@ -26,6 +26,13 @@ router.get(
   PurchaseController.receivedinventoryforaccmanager
 );
 
+router.get(
+  '/low',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  PurchaseController.lowinventory
+);
+
 router.patch(
   '/updateinventory/:id',
   ManagersauthController.protect,
