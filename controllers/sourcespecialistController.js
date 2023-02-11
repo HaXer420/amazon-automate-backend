@@ -48,9 +48,9 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.getprofile = catchAsync(async (req, res, next) => {
-  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate))
-    return next(new AppError('Must Send Query!', 400));
-
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
   // console.log(req.query);
 
   const matchStage =
