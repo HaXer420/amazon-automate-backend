@@ -41,6 +41,10 @@ const clientSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'Manager',
     },
+    assignedAt: {
+      type: Date,
+      default: Date.now(),
+    },
     photo: {
       type: String,
       default:

@@ -106,6 +106,7 @@ exports.assignclienttoaccmanager = catchAsync(async (req, res, next) => {
   }
 
   client.accountmanager = req.body.accountmanager;
+  client.assignedAt = Date.now();
   client.save({ validateBeforeSave: false });
 
   res.status(200).json({

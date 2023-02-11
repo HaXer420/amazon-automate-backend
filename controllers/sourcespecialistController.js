@@ -172,6 +172,7 @@ exports.assignspecialisttosourcemanager = catchAsync(async (req, res, next) => {
   if (!manager) return next(new AppError('Manager not found', 400));
 
   specialist.sourcemanager = req.body.sourcemanager;
+  specialist.assignedAt = Date.now();
   specialist.save({ validateBeforeSave: false });
 
   res.status(200).json({

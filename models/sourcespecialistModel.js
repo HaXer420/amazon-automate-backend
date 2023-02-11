@@ -52,6 +52,10 @@ const specialistSchema = new mongoose.Schema(
       type: Date,
       default: Date.now(),
     },
+    assignedAt: {
+      type: Date,
+      default: Date.now(),
+    },
     role: {
       type: String,
       enum: ['Specialist'],
