@@ -8,7 +8,7 @@ const Client = require('../models/clientModel');
 const Purchase = require('../models/purchaseModel');
 
 exports.createReport = catchAsync(async (req, res, next) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { body } = req;
 
   // console.log(body);
@@ -672,7 +672,7 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
   const report = await Report.find(matchStage);
 
   let totalcost = 0;
-  let profit = 0;
+  let profit1 = 0;
 
   const filter1 = await Promise.all(
     report.map(async (object) => {
@@ -689,7 +689,7 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
       ]);
       totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
       let objprofit = object.total * 1 - totalcost * 1;
-      profit = profit + objprofit;
+      profit1 = profit1 + objprofit;
       // console.log(profit);
     })
   );
@@ -709,9 +709,9 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
       ]);
       return {
         date_time: moment(object.date_time).format('YYYY-MM-DD'),
-        quanity: object.quantity * 1,
+        quantity: object.quantity * 1,
         // totalcost: avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
-        objprofit:
+        profit:
           object.total * 1 -
           avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
       };
@@ -721,9 +721,9 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
   const reducedGraph = filter1Graph.reduce((acc, cur) => {
     const dateIndex = acc.findIndex((el) => el.date_time === cur.date_time);
     if (dateIndex !== -1) {
-      acc[dateIndex].quanity += cur.quanity;
+      acc[dateIndex].quantity += cur.quantity;
       // acc[dateIndex].totalcost += cur.totalcost;
-      acc[dateIndex].objprofit += cur.objprofit;
+      acc[dateIndex].profit += cur.profit;
     } else {
       acc.push(cur);
     }
@@ -858,11 +858,11 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
   const result = await Report.aggregate(pipeline);
   // console.log(result[0].sumTotal);
   // console.log(result);
-  result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+  result.length != 0 ? (profit1 = profit1 + result[0].sumTotal) : '';
 
   res.status(200).json({
     status: 'Success',
-    total: profit,
+    total: profit1,
     graph: sortedFilter1Graph,
   });
 });
