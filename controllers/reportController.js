@@ -9,8 +9,8 @@ const Purchase = require('../models/purchaseModel');
 
 exports.createReport = catchAsync(async (req, res, next) => {
   // console.log(req.body);
-  const { body } = req.body.json;
-  //   console.log(body);
+  const body = req.body.json;
+  console.log(body);
 
   const client = await Client.findById(req.params.id);
 
