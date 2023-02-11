@@ -8,6 +8,7 @@ const Client = require('../models/clientModel');
 const Purchase = require('../models/purchaseModel');
 
 exports.createReport = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const { body } = req;
   //   console.log(body);
 
