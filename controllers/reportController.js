@@ -141,10 +141,10 @@ exports.createReport = catchAsync(async (req, res, next) => {
           purchase.save();
         }
 
-        // const product = await Product.findOne({
-        //   $and: [{ client: req.params.id }, { sku: { $eq: report.sku } }],
-        // });
-        // if (!product) return;
+        const product = await Product.findOne({
+          $and: [{ client: req.params.id }, { sku: { $eq: report.sku } }],
+        });
+        if (!product) return;
         // console.log(product, report.sku);
         return {
           date_time: new Date(report['date/time']),

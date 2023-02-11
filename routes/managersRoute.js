@@ -53,4 +53,13 @@ router.get(
   ManagerController.getSourceManagers
 );
 
+/////////////// Account Manager Buisness Routes
+
+router.get(
+  '/clientsdata',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ManagerController.allclients
+);
+
 module.exports = router;

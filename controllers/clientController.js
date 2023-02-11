@@ -145,7 +145,7 @@ exports.assignproducttoclient = catchAsync(async (req, res, next) => {
 exports.deleteproductfromclient = catchAsync(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
-  if (!product || product.client)
+  if (!product || !product.client)
     return next(new AppError('Product Does not exist!', 400));
   if (product.isApproved === false || product.status === 'Rejected')
     return next(
