@@ -704,7 +704,7 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
       return {
         date_time: moment(object.date_time).format('YYYY-MM-DD'),
         quanity: object.quantity * 1,
-        totalcost: avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
+        // totalcost: avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
         objprofit:
           object.total * 1 -
           avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1,
@@ -712,7 +712,19 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
     })
   );
 
-  const sortedFilter1Graph = filter1Graph.sort((a, b) => {
+  const reducedGraph = filter1Graph.reduce((acc, cur) => {
+    const dateIndex = acc.findIndex((el) => el.date_time === cur.date_time);
+    if (dateIndex !== -1) {
+      acc[dateIndex].quanity += cur.quanity;
+      // acc[dateIndex].totalcost += cur.totalcost;
+      acc[dateIndex].objprofit += cur.objprofit;
+    } else {
+      acc.push(cur);
+    }
+    return acc;
+  }, []);
+
+  const sortedFilter1Graph = reducedGraph.sort((a, b) => {
     return new Date(a.date_time) - new Date(b.date_time);
   });
 
