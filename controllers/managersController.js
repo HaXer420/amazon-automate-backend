@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Manager = require('../models/managersModel');
 const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
@@ -128,7 +129,6 @@ exports.allclients = catchAsync(async (req, res, next) => {
         let objprofit = object.total * 1 - totalcost * 1;
         profit = profit + objprofit;
 
-        profitMargin = (profit / sales) * 100;
         // console.log(profit);
       });
 
@@ -138,7 +138,32 @@ exports.allclients = catchAsync(async (req, res, next) => {
         totalinv = totalinv + purchase.remainingqty * 1;
         totalsold = totalsold + purchase.soldqty * 1;
       });
+
+      const pipeline = [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $ne: ['$type', 'Order'] },
+                { $eq: ['$client', mongoose.Types.ObjectId(client.id)] },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sumTotal: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const result = await Report.aggregate(pipeline);
+      // console.log(result[0].sumTotal);
+      // console.log(result);
+      result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
       // console.log(totalinv, totalsold, sales, profit);
+      profitMargin = (profit / sales) * 100;
       return {
         totalsold,
         totalinv,
@@ -153,64 +178,3 @@ exports.allclients = catchAsync(async (req, res, next) => {
     data: clientdata,
   });
 });
-
-// exports.allclients = catchAsync(async (req, res, next) => {
-//   const clients = await Client.find({ accountmanager: req.user.id });
-
-//   const clientdata = [];
-//   for (const client of clients) {
-//     let totalsold = 0;
-//     let totalinv = 0;
-//     let sales = 0;
-//     let profit = 0;
-
-//     const purchases = await Purchase.find({ client: client.id });
-//     const purchasedata = [];
-//     for (const purchase of purchases) {
-//       totalinv += purchase.remainingqty * 1;
-//       totalsold += purchase.soldqty * 1;
-
-//       const reports = await Report.find({
-//         $and: [{ client: client.id }, { type: 'Order' }],
-//       });
-
-//       console.log(reports.length);
-//       const reportfilter = [];
-//       for (const object of reports) {
-//         sales += object.total * 1;
-
-//         const avgUnitCost = await Purchase.aggregate([
-//           {
-//             $match: { sku: object.sku },
-//           },
-//           {
-//             $group: {
-//               _id: null,
-//               avgUnitCost: { $avg: '$unitCost' },
-//             },
-//           },
-//         ]);
-
-//         let totalcost = 0;
-//         if (avgUnitCost.length) {
-//           totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
-//         }
-
-//         let objprofit = object.total * 1 - totalcost * 1;
-//         profit += objprofit;
-//       }
-//     }
-
-//     clientdata.push({
-//       totalsold,
-//       totalinv,
-//       sales,
-//       profit,
-//     });
-//   }
-
-//   res.status(200).json({
-//     status: 'Success',
-//     data: clientdata,
-//   });
-// });

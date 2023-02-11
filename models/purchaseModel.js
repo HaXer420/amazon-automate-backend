@@ -30,7 +30,7 @@ const purchaseSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Inbound', 'Received'],
+      enum: ['Inbound', 'Received', 'Sold'],
       default: 'Inbound',
     },
     createdAt: {

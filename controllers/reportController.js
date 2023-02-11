@@ -138,7 +138,11 @@ exports.createReport = catchAsync(async (req, res, next) => {
 
           purchase.soldqty = purchase.soldqty + qty;
           purchase.remainingqty = purchase.remainingqty - qty;
-          purchase.save();
+          purchase.updateAt = Date.now();
+          purchase.soldqty >= purchase.quantity
+            ? (purchase.status = 'Sold')
+            : '',
+            purchase.save();
         }
 
         const product = await Product.findOne({

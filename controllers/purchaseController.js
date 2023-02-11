@@ -120,6 +120,7 @@ exports.lowinventory = catchAsync(async (req, res, next) => {
       {
         remainingqty: { $lt: 10 },
       },
+      { status: { $ne: 'Sold' } },
       { accountmanager: { $eq: req.user.id } },
     ],
   });
