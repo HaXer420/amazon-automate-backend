@@ -108,6 +108,8 @@ exports.allclients = catchAsync(async (req, res, next) => {
       let profit = 0;
       let profitMargin = 0;
 
+      const asins = await Product.countDocuments({ client: client.id });
+
       const reports = await Report.find({
         $and: [{ client: client.id }, { type: 'Order' }],
       });
@@ -165,6 +167,9 @@ exports.allclients = catchAsync(async (req, res, next) => {
       // console.log(totalinv, totalsold, sales, profit);
       profitMargin = (profit / sales) * 100;
       return {
+        id: client.id,
+        name: client.name,
+        asins,
         totalsold,
         totalinv,
         sales,
