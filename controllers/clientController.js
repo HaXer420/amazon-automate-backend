@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Client = require('../models/clientModel');
 const factory = require('./factoryHandler');
 const catchAsync = require('../utils/catchAsync');
@@ -6,6 +7,7 @@ const Manager = require('../models/managersModel');
 const Product = require('../models/productsModel');
 const Chat = require('../models/chatModel');
 const Purchase = require('../models/purchaseModel');
+const Report = require('../models/reportModel');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -218,3 +220,269 @@ exports.accgethisclients = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllClients = factory.getAll(Client);
+
+//////////// Client Buisness API's
+
+exports.topsales = catchAsync(async (req, res, next) => {
+  const data = await Report.aggregate([
+    {
+      $match: {
+        type: 'Order',
+        date_time: {
+          $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+          $lt: new Date(),
+        },
+        client: mongoose.Types.ObjectId(req.user.id),
+      },
+    },
+    {
+      $group: {
+        _id: '$product',
+        total_quantity_sold: { $sum: '$quantity' },
+        total_sales: { $sum: '$total' },
+      },
+    },
+    {
+      $sort: {
+        total_quantity_sold: -1,
+        total_sales: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'product_info',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$product_info.productname',
+        total_quantity_sold: 1,
+        total_sales: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'Success',
+    data,
+  });
+});
+
+exports.currentunsoldinventory = catchAsync(async (req, res, next) => {
+  const products = await Product.find({
+    $and: [{ client: req.user.id }, { isAssigned: true }],
+  });
+
+  let unsoldinvvalue = 0;
+  let unsoldinvvalueqty = 0;
+
+  const productdata = await Promise.all(
+    products.map(async (product) => {
+      let unsoldtemp = 0;
+      let unsoldtempqty = 0;
+
+      const purchases = await Purchase.find({
+        $and: [{ client: req.user.id }, { product: product.id }],
+      });
+
+      const purchasedata = purchases.map((purchase) => {
+        unsoldtemp = unsoldtemp + purchase.remainingqty;
+        unsoldtempqty = unsoldinvvalueqty + purchase.remainingqty;
+      });
+      unsoldtemp = unsoldtemp * product.projectedsaleprice;
+      unsoldinvvalueqty = unsoldinvvalueqty + unsoldtempqty;
+      unsoldinvvalue = unsoldinvvalue + unsoldtemp;
+
+      return {
+        unsoldinvvalue,
+        unsoldinvvalueqty,
+      };
+    })
+  );
+
+  res.status(200).json({
+    status: 'Success',
+    unsoldinvvalue,
+    unsoldinvvalueqty,
+  });
+});
+
+exports.clientinventorydata = catchAsync(async (req, res, next) => {
+  const clients = await Client.find({ _id: req.user.id });
+
+  const clientdata = await Promise.all(
+    clients.map(async (client) => {
+      let totalcost = 0;
+      let totalsold = 0;
+      let totalinv = 0;
+      let sales = 0;
+      let profit = 0;
+      let profitMargin = 0;
+
+      const reports = await Report.find({
+        $and: [{ client: client.id }, { type: 'Order' }],
+      });
+
+      const reportfilter = reports.map(async (object) => {
+        sales = sales + object.total * 1;
+
+        const avgUnitCost = await Purchase.aggregate([
+          {
+            $match: {
+              sku: object.sku,
+              client: mongoose.Types.ObjectId(client.id),
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgUnitCost: { $avg: '$unitCost' },
+            },
+          },
+        ]);
+        totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
+        let objprofit = object.total * 1 - totalcost * 1;
+        profit = profit + objprofit;
+
+        // console.log(profit);
+      });
+
+      const purchases = await Purchase.find({ client: client.id });
+
+      const purchasedata = purchases.map(async (purchase) => {
+        totalinv = totalinv + purchase.remainingqty * 1;
+        totalsold = totalsold + purchase.soldqty * 1;
+      });
+
+      const pipeline = [
+        {
+          $match: {
+            type: { $ne: 'Order' },
+            client: mongoose.Types.ObjectId(client.id),
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sumTotal: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const result = await Report.aggregate(pipeline);
+      // console.log(result[0].sumTotal);
+      // console.log(result);
+      result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+      // console.log(totalinv, totalsold, sales, profit);
+      profitMargin = (profit / sales) * 100;
+      totalcost = sales - profit;
+      return {
+        totalsold,
+        totalinv,
+        sales,
+        totalcost: totalcost,
+        profitval: profit,
+        profit: profitMargin,
+      };
+    })
+  );
+
+  res.status(200).json({
+    status: 'Success',
+    data: clientdata,
+  });
+});
+
+exports.clientsalesdata = catchAsync(async (req, res, next) => {
+  const clients = await Client.find({ _id: req.user.id });
+
+  const clientdata = await Promise.all(
+    clients.map(async (client) => {
+      let totalcost = 0;
+      let totalsold = 0;
+      let totalinv = 0;
+      let sales = 0;
+      let profit = 0;
+      let mngmntshare = 0;
+      let profitMargin = 0;
+
+      const reports = await Report.find({
+        $and: [{ client: client.id }, { type: 'Order' }],
+      });
+
+      const reportfilter = reports.map(async (object) => {
+        sales = sales + object.total * 1;
+
+        const avgUnitCost = await Purchase.aggregate([
+          {
+            $match: {
+              sku: object.sku,
+              client: mongoose.Types.ObjectId(client.id),
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgUnitCost: { $avg: '$unitCost' },
+            },
+          },
+        ]);
+        totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
+        let objprofit = object.total * 1 - totalcost * 1;
+        profit = profit + objprofit;
+        // mngmntshare = mngmntshare +
+        // console.log(profit);
+      });
+
+      const purchases = await Purchase.find({ client: client.id });
+
+      const purchasedata = purchases.map(async (purchase) => {
+        totalinv = totalinv + purchase.remainingqty * 1;
+        totalsold = totalsold + purchase.soldqty * 1;
+      });
+
+      const pipeline = [
+        {
+          $match: {
+            type: { $ne: 'Order' },
+            client: mongoose.Types.ObjectId(client.id),
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sumTotal: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const result = await Report.aggregate(pipeline);
+      // console.log(result[0].sumTotal);
+      // console.log(result);
+      result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+      // console.log(totalinv, totalsold, sales, profit);
+      profitMargin = (profit / sales) * 100;
+      totalcost = sales - profit;
+      return {
+        totalsold,
+        totalinv,
+        sales,
+        totalcost: totalcost,
+        profitval: profit,
+        profit: profitMargin,
+      };
+    })
+  );
+
+  res.status(200).json({
+    status: 'Success',
+    data: clientdata,
+  });
+});

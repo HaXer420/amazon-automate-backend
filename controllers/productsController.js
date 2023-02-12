@@ -534,3 +534,90 @@ exports.accmanagergetApprovedandUnassignedtotals = catchAsync(
     });
   }
 );
+
+exports.adminpendingproducts = catchAsync(async (req, res, next) => {
+  // const products = await Product.find({
+  //   $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+  // });
+
+  const features = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
+
+  res.status(200).json({
+    status: 'Success',
+    length: products.length,
+    data: products,
+  });
+});
+
+exports.adminunassignedandapproved = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
+
+  res.status(200).json({
+    status: 'Success',
+    message: 'Approved and Unassigned Products.',
+    size: products.length,
+    data: products,
+  });
+});
+
+exports.pendingandunassignedcard = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: false } }, { status: { $eq: `Pending` } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products = await features.query;
+
+  const features2 = new APIFeatures(
+    Product.find({
+      $and: [{ isApproved: { $eq: true } }, { isAssigned: { $eq: false } }],
+    }),
+    req.query
+  )
+    .filter()
+    .sorting()
+    .field()
+    .paging();
+
+  // const doc = await features.query.explain();
+  const products2 = await features2.query;
+
+  res.status(200).json({
+    status: 'Success',
+    pendinglength: products.length,
+    datapending: products,
+    unassignedlength: products2.length,
+    dataunassigned: products2,
+  });
+});

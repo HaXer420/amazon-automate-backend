@@ -62,4 +62,11 @@ router.get(
   ManagerController.allclients
 );
 
+router.get(
+  '/productsdataclient/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Account'),
+  ManagerController.allproductsofclient
+);
+
 module.exports = router;

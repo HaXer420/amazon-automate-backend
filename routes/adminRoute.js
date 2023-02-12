@@ -1,6 +1,7 @@
 const express = require('express');
 const AdminauthController = require('../controllers/adminauthController');
 const AdminController = require('../controllers/adminController');
+const ProductController = require('../controllers/productsController');
 
 const router = express.Router();
 
@@ -48,6 +49,26 @@ router.patch(
   AdminauthController.protect,
   AdminauthController.restrictTo('admin'),
   AdminController.resetPassClient
+);
+
+/////////////////// Buisness Admin Routes
+
+router.get(
+  '/pendingasins',
+  AdminauthController.protect,
+  ProductController.adminpendingproducts
+);
+
+router.get(
+  '/unassignedandapproved',
+  AdminauthController.protect,
+  ProductController.adminunassignedandapproved
+);
+
+router.get(
+  '/pendingandunassignedcard',
+  AdminauthController.protect,
+  ProductController.pendingandunassignedcard
 );
 
 module.exports = router;

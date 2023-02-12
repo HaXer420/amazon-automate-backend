@@ -69,4 +69,30 @@ router.patch(
   ClientController.deleteproductfromclient
 );
 
+//////////////////buisness APi routes
+
+router.get(
+  '/topsales',
+  ClientsauthController.protect,
+  ClientController.topsales
+);
+
+router.get(
+  '/unsoldinventory',
+  ClientsauthController.protect,
+  ClientController.currentunsoldinventory
+);
+
+router.get(
+  '/inventorycard',
+  ClientsauthController.protect,
+  ClientController.clientinventorydata
+);
+
+router.get(
+  '/salescard',
+  ClientsauthController.protect,
+  ClientController.clientsalesdata
+);
+
 module.exports = router;

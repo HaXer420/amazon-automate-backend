@@ -667,6 +667,18 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
             { type: 'Order' },
           ],
         }
+      : req.query.dateRange === 'lastThirtyDays'
+      ? {
+          $and: [
+            {
+              date_time: {
+                $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+              },
+            },
+            { date_time: { $lt: new Date() } },
+            { type: 'Order' },
+          ],
+        }
       : {};
 
   const report = await Report.find(matchStage);
