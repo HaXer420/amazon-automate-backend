@@ -71,4 +71,16 @@ router.get(
   ProductController.pendingandunassignedcard
 );
 
+router.get(
+  '/acmanagerdata',
+  AdminauthController.protect,
+  AdminController.acmanagersdata
+);
+
+router.get(
+  '/clientsproductdata/:id',
+  AdminauthController.protect,
+  AdminController.allproductsofclient
+);
+
 module.exports = router;
