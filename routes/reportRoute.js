@@ -15,4 +15,11 @@ router.post(
 router.get('/sales', ReportController.totalsales);
 router.get('/profits', ReportController.totalprofit);
 
+// router.get(
+//   '/testing',
+//   ManagersauthController.protect,
+//   ManagersauthController.restrictTo('Account'),
+//   ReportController.testing
+// );
+
 module.exports = router;

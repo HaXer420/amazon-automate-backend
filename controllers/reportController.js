@@ -6,6 +6,10 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const Client = require('../models/clientModel');
 const Purchase = require('../models/purchaseModel');
+const {
+  matchDateRangeSimple,
+  matchDateRangeAggregation,
+} = require('../utils/datesFilter');
 
 exports.createReport = catchAsync(async (req, res, next) => {
   // console.log(req.body);
@@ -878,3 +882,47 @@ exports.totalprofit = catchAsync(async (req, res, next) => {
     graph: sortedFilter1Graph,
   });
 });
+
+/////////for testing
+
+// exports.testing = catchAsync(async (req, res, next) => {
+//   if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+//     req.query.dateRange = 'all';
+//   }
+
+//   let query1 = '';
+//   let query2 = '';
+
+//   if (req.query.startDate && req.query.endDate) {
+//     query1 = req.query.startDate;
+//     query2 = req.query.endDate;
+//   }
+
+//   console.log(query1, query2);
+
+//   if (req.query.dateRange) {
+//     query1 = req.query.dateRange;
+//   }
+
+//   // console.log(...matchDateRangeSimple(query1, 'date_time', query2));
+
+//   // console.log(...matchDateRangeSimple(query1, 'date_time', query2));
+
+//   // const reports = await Report.aggregate({
+//   //   $and: [
+//   //     { accountmanager: req.user.id },
+//   //     ...matchDateRangeSimple(query1, 'date_time', query2),
+//   //   ],
+//   // });
+
+//   const reports = await Report.aggregate([
+//     {
+//       $match: {
+//         accountmanager: mongoose.Types.ObjectId(req.user.id),
+//         ...matchDateRangeAggregation(query1, 'date_time', query2),
+//       },
+//     },
+//   ]);
+
+//   res.status(200).json(reports);
+// });

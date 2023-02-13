@@ -7,6 +7,10 @@ const Client = require('../models/clientModel');
 const Product = require('../models/productsModel');
 const Purchase = require('../models/purchaseModel');
 const Report = require('../models/reportModel');
+const {
+  matchDateRangeSimple,
+  matchDateRangeAggregation,
+} = require('../utils/datesFilter');
 
 const currentObj = (obj, ...fieldsallowed) => {
   const newObj = {};
@@ -98,6 +102,24 @@ exports.getAllManagers = factory.getAll(Manager);
 ////////////////////////Acount Manager Buisness API's
 
 exports.allclients = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
+  // console.log(query1, query2);
+
   const clients = await Client.find({ accountmanager: req.user.id });
 
   const clientdata = await Promise.all(
@@ -111,7 +133,11 @@ exports.allclients = catchAsync(async (req, res, next) => {
       const asins = await Product.countDocuments({ client: client.id });
 
       const reports = await Report.find({
-        $and: [{ client: client.id }, { type: 'Order' }],
+        $and: [
+          { client: client.id },
+          { type: 'Order' },
+          ...matchDateRangeSimple(query1, 'date_time', query2),
+        ],
       });
 
       const reportfilter = reports.map(async (object) => {
@@ -122,6 +148,7 @@ exports.allclients = catchAsync(async (req, res, next) => {
             $match: {
               sku: object.sku,
               client: mongoose.Types.ObjectId(client.id),
+              ...matchDateRangeAggregation(query1, 'updateAt', query2),
             },
           },
           {
@@ -131,14 +158,21 @@ exports.allclients = catchAsync(async (req, res, next) => {
             },
           },
         ]);
-        totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
+        avgUnitCost.length > 0
+          ? (totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+          : (totalcost = 0);
         let objprofit = object.total * 1 - totalcost * 1;
         profit = profit + objprofit;
 
         // console.log(profit);
       });
 
-      const purchases = await Purchase.find({ client: client.id });
+      const purchases = await Purchase.find({
+        $and: [
+          { client: client.id },
+          ...matchDateRangeSimple(query1, 'updateAt', query2),
+        ],
+      });
 
       const purchasedata = purchases.map(async (purchase) => {
         totalinv = totalinv + purchase.remainingqty * 1;
@@ -150,6 +184,7 @@ exports.allclients = catchAsync(async (req, res, next) => {
           $match: {
             type: { $ne: 'Order' },
             client: mongoose.Types.ObjectId(client.id),
+            ...matchDateRangeAggregation(query1, 'date_time', query2),
           },
         },
         {
@@ -186,6 +221,22 @@ exports.allclients = catchAsync(async (req, res, next) => {
 });
 
 exports.allproductsofclient = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
   const products = await Product.find({ client: req.params.id });
 
   const productdata = await Promise.all(
@@ -201,6 +252,7 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
           { client: req.params.id },
           { type: 'Order' },
           { product: product.id },
+          ...matchDateRangeSimple(query1, 'date_time', query2),
         ],
       });
 
@@ -212,6 +264,7 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
             $match: {
               sku: object.sku,
               client: mongoose.Types.ObjectId(req.params.id),
+              ...matchDateRangeAggregation(query1, 'updateAt', query2),
             },
           },
           {
@@ -221,7 +274,10 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
             },
           },
         ]);
-        totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
+        avgUnitCost.length > 0
+          ? (totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+          : (totalcost = 0);
+        // totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1;
         let objprofit = object.total * 1 - totalcost * 1;
         profit = profit + objprofit;
 
@@ -229,7 +285,11 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
       });
 
       const purchases = await Purchase.find({
-        $and: [{ client: req.params.id }, { product: product.id }],
+        $and: [
+          { client: req.params.id },
+          { product: product.id },
+          ...matchDateRangeSimple(query1, 'updateAt', query2),
+        ],
       });
 
       const purchasedata = purchases.map(async (purchase) => {
@@ -326,6 +386,7 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
           $match: {
             product: mongoose.Types.ObjectId(id),
             client: mongoose.Types.ObjectId(req.params.id),
+            ...matchDateRangeAggregation(query1, 'updateAt', query2),
           },
         },
         {
