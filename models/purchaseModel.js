@@ -45,6 +45,14 @@ const purchaseSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'Manager',
     },
+    sourcemanager: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Manager',
+    },
+    specialist: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Specialist',
+    },
     client: {
       type: mongoose.Schema.ObjectId,
       ref: 'Client',

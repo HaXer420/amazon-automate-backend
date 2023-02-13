@@ -333,3 +333,144 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
     data: productdata,
   });
 });
+
+exports.topsalesproducts = catchAsync(async (req, res, next) => {
+  const dataproducts = await Report.aggregate([
+    {
+      $match: {
+        type: 'Order',
+        date_time: {
+          $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+          $lt: new Date(),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$product',
+        total_quantity_sold: { $sum: '$quantity' },
+        total_sales: { $sum: '$total' },
+      },
+    },
+    {
+      $sort: {
+        total_quantity_sold: -1,
+        total_sales: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'product_info',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$product_info.productname',
+        total_quantity_sold: 1,
+        total_sales: 1,
+      },
+    },
+  ]);
+
+  const dataacmanagers = await Report.aggregate([
+    {
+      $match: {
+        type: 'Order',
+        date_time: {
+          $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+          $lt: new Date(),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$accountmanager',
+        total_quantity_sold: { $sum: '$quantity' },
+        total_sales: { $sum: '$total' },
+      },
+    },
+    {
+      $sort: {
+        total_quantity_sold: -1,
+        total_sales: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $lookup: {
+        from: 'managers',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'account_info',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$account_info.name',
+        total_quantity_sold: 1,
+        total_sales: 1,
+      },
+    },
+  ]);
+
+  const dataclients = await Report.aggregate([
+    {
+      $match: {
+        type: 'Order',
+        date_time: {
+          $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+          $lt: new Date(),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$client',
+        total_quantity_sold: { $sum: '$quantity' },
+        total_sales: { $sum: '$total' },
+      },
+    },
+    {
+      $sort: {
+        total_quantity_sold: -1,
+        total_sales: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $lookup: {
+        from: 'clients',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'client_info',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$client_info.name',
+        total_quantity_sold: 1,
+        total_sales: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'Success',
+    dataproducts,
+    dataacmanagers,
+    dataclients,
+  });
+});

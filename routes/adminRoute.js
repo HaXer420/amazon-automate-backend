@@ -83,4 +83,10 @@ router.get(
   AdminController.allproductsofclient
 );
 
+router.get(
+  '/top5products',
+  AdminauthController.protect,
+  AdminController.topsalesproducts
+);
+
 module.exports = router;

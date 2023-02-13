@@ -59,6 +59,8 @@ exports.createPurchase = catchAsync(async (req, res, next) => {
     supplier: req.body.supplier,
     inboundqty: req.body.quantity,
     accountmanager: req.user.id,
+    specialist: product.specialist,
+    sourcemanager: product.sourcemanager,
     client: req.params.cid,
     product: req.params.pid,
     transaction: trans.id,
