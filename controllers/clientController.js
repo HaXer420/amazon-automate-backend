@@ -293,12 +293,12 @@ exports.currentunsoldinventory = catchAsync(async (req, res, next) => {
       let unsoldtempqty = 0;
 
       const purchases = await Purchase.find({
-        $and: [{ client: req.user.id }, { product: product.id }],
+        $and: [{ client: req.user.id }, { sku: product.sku }],
       });
 
       const purchasedata = purchases.map((purchase) => {
         unsoldtemp = unsoldtemp + purchase.remainingqty;
-        unsoldtempqty = unsoldinvvalueqty + purchase.remainingqty;
+        unsoldtempqty = unsoldtempqty + purchase.remainingqty;
       });
       unsoldtemp = unsoldtemp * product.projectedsaleprice;
       unsoldinvvalueqty = unsoldinvvalueqty + unsoldtempqty;
