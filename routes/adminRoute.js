@@ -89,4 +89,22 @@ router.get(
   AdminController.topsalesproducts
 );
 
+router.get(
+  '/top5productsprofit',
+  AdminauthController.protect,
+  AdminController.topprofitproducts
+);
+
+router.get(
+  '/top5managersprofit',
+  AdminauthController.protect,
+  AdminController.topprofitsacmanagersdata
+);
+
+router.get(
+  '/top5clientsprofit',
+  AdminauthController.protect,
+  AdminController.topprofitsallclients
+);
+
 module.exports = router;
