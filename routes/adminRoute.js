@@ -71,6 +71,8 @@ router.get(
   ProductController.pendingandunassignedcard
 );
 
+////////////////// Account Manager and Client API's
+
 router.get(
   '/acmanagerdata',
   AdminauthController.protect,
@@ -105,6 +107,32 @@ router.get(
   '/top5clientsprofit',
   AdminauthController.protect,
   AdminController.topprofitsallclients
+);
+
+////////////////// Source Manager and Specialist API's
+
+router.get(
+  '/sourcemanagerdata',
+  AdminauthController.protect,
+  AdminController.sourcemanagersdata
+);
+
+router.get(
+  '/specialistsproductdata/:id',
+  AdminauthController.protect,
+  AdminController.allproductsofspecilist
+);
+
+router.get(
+  '/top5sourcemanagersprofit',
+  AdminauthController.protect,
+  AdminController.topprofitssourcingmanagersdata
+);
+
+router.get(
+  '/top5specialistsprofit',
+  AdminauthController.protect,
+  AdminController.topprofitsallspecialists
 );
 
 module.exports = router;

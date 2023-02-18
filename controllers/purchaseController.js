@@ -199,13 +199,13 @@ exports.updateInventory = catchAsync(async (req, res, next) => {
   }
 
   const desc = `For Product ${product.productname} and SKU ${product.sku},${
-    req.body.receivedqty ? `, Quantity Received ${req.body.receivedqty}` : ''
+    req.body.receivedqty ? ` Quantity Received ${req.body.receivedqty}` : ''
   }   and ${
     req.body.unitcost
       ? `New Unit Cost ${req.body.unitcost}`
       : `Unit Cost ${unitcost} `
   } ${
-    req.body.canceledqty ? `, Cancel Quantity ${req.body.canceledqty}` : ''
+    req.body.canceledqty ? ` Cancel Quantity ${req.body.canceledqty}` : ''
   } From Supplier ${
     purchase.supplier
   }, Remaining Inbound Qty : ${currentinboundqty}`;

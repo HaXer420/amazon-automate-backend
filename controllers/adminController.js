@@ -61,7 +61,7 @@ exports.resetPassSpecialist = factory.resetPasswordGlobal(Specialist);
 
 exports.resetPassClient = factory.resetPasswordGlobal(Client);
 
-//////////////// buisness APIs
+//////////////// buisness APIs Account Managers and Clients
 
 exports.acmanagersdata = catchAsync(async (req, res, next) => {
   if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
@@ -318,6 +318,9 @@ exports.allproductsofclient = catchAsync(async (req, res, next) => {
       // console.log(totalinv, totalsold, sales, profit);
       profitMargin = (profit / sales) * 100;
       return {
+        asin: product.asin,
+        name: product.productname,
+        product: product.id,
         totalsold,
         totalinv,
         sales,
@@ -986,5 +989,619 @@ exports.topprofitsallclients = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'Success',
     data: getTopFiveByProfitVal(clientdata),
+  });
+});
+
+//////////////// buisness APIs Account Managers and Clients
+
+exports.sourcemanagersdata = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
+  // console.log(query1, query2);
+
+  const managers = await Manager.find({ role: 'Sourcing' });
+
+  const managerdata = await Promise.all(
+    managers.map(async (manager) => {
+      const specialists = await Specialist.find({ sourcemanager: manager._id });
+
+      let mtotalsold = 0;
+      let mtotalinv = 0;
+      let masin = 0;
+      let mpendingasins = 0;
+      let msales = 0;
+      let mprofit = 0;
+      let mprofitMargin = 0;
+
+      const specialistdata = await Promise.all(
+        specialists.map(async (specialist) => {
+          let totalsold = 0;
+          let totalinv = 0;
+          let sales = 0;
+          let profit = 0;
+          let profitMargin = 0;
+
+          const asins = await Product.countDocuments({
+            $and: [
+              { specialist: specialist.id },
+              { status: { $ne: 'Rejected' } },
+            ],
+          });
+
+          const pendingasins = await Product.countDocuments({
+            $and: [
+              { specialist: specialist.id },
+              { status: { $eq: 'Pending' } },
+            ],
+          });
+
+          const reports = await Report.find({
+            $and: [
+              { specialist: specialist.id },
+              { type: 'Order' },
+              ...matchDateRangeSimple(query1, 'date_time', query2),
+            ],
+          });
+
+          const reportfilter = reports.map(async (object) => {
+            sales = sales + object.total * 1;
+
+            const avgUnitCost = await Purchase.aggregate([
+              {
+                $match: {
+                  sku: object.sku,
+                  specialist: mongoose.Types.ObjectId(specialist.id),
+                  ...matchDateRangeAggregation(query1, 'updateAt', query2),
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  avgUnitCost: { $avg: '$unitCost' },
+                },
+              },
+            ]);
+            avgUnitCost.length > 0
+              ? (totalcost =
+                  avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+              : (totalcost = 0);
+            let objprofit = object.total * 1 - totalcost * 1;
+            profit = profit + objprofit;
+
+            // console.log(profit);
+          });
+
+          const purchases = await Purchase.find({
+            $and: [
+              { specialist: specialist.id },
+              ...matchDateRangeSimple(query1, 'updateAt', query2),
+            ],
+          });
+
+          const purchasedata = purchases.map(async (purchase) => {
+            totalinv = totalinv + purchase.remainingqty * 1;
+            totalsold = totalsold + purchase.soldqty * 1;
+          });
+
+          const pipeline = [
+            {
+              $match: {
+                type: { $ne: 'Order' },
+                specialist: mongoose.Types.ObjectId(specialist.id),
+                ...matchDateRangeAggregation(query1, 'date_time', query2),
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                sumTotal: { $sum: '$total' },
+              },
+            },
+          ];
+
+          const result = await Report.aggregate(pipeline);
+          // console.log(result[0].sumTotal);
+          // console.log(result);
+          result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+          // console.log(totalinv, totalsold, sales, profit);
+          profitMargin = (profit / sales) * 100;
+
+          mtotalsold = mtotalsold + totalsold;
+          mtotalinv = mtotalinv + totalinv;
+          masin = masin + asins;
+          mpendingasins = mpendingasins + pendingasins;
+          msales = msales + sales;
+          mprofit = mprofit + profit;
+          mprofitMargin = mprofitMargin + profitMargin;
+
+          return {
+            id: specialist.id,
+            name: specialist.name,
+            asins,
+            pendingasins,
+            totalsold,
+            totalinv,
+            sales,
+            profitval: profit,
+            profit: profitMargin,
+          };
+        })
+      );
+      // mprofitMargin = mprofitMargin / clientdata.length;
+      return {
+        id: manager.id,
+        name: manager.name,
+        masin,
+        mpendingasins,
+        mtotalsold,
+        mtotalinv,
+        msales,
+        mprofit,
+        mprofitMargin: mprofitMargin / specialistdata.length,
+        specialists: specialistdata,
+      };
+    })
+  );
+
+  res.status(200).json({
+    status: 'Success',
+    data: managerdata,
+  });
+});
+
+exports.allproductsofspecilist = catchAsync(async (req, res, next) => {
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
+  const products = await Product.find({
+    $and: [{ specialist: req.params.id }, { status: { $eq: 'Approved' } }],
+  });
+
+  const productdata = await Promise.all(
+    products.map(async (product) => {
+      let totalsold = 0;
+      let totalinv = 0;
+      let sales = 0;
+      let profit = 0;
+      let profitMargin = 0;
+
+      const reports = await Report.find({
+        $and: [
+          { specialist: req.params.id },
+          { type: 'Order' },
+          { product: product.id },
+          ...matchDateRangeSimple(query1, 'date_time', query2),
+        ],
+      });
+
+      const reportfilter = reports.map(async (object) => {
+        sales = sales + object.total * 1;
+
+        const avgUnitCost = await Purchase.aggregate([
+          {
+            $match: {
+              sku: object.sku,
+              specialist: mongoose.Types.ObjectId(req.params.id),
+              ...matchDateRangeAggregation(query1, 'updateAt', query2),
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgUnitCost: { $avg: '$unitCost' },
+            },
+          },
+        ]);
+        avgUnitCost.length > 0
+          ? (totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+          : (totalcost = 0);
+        let objprofit = object.total * 1 - totalcost * 1;
+        profit = profit + objprofit;
+
+        // console.log(profit);
+      });
+
+      const purchases = await Purchase.find({
+        $and: [
+          { specialist: req.params.id },
+          { product: product.id },
+          ...matchDateRangeSimple(query1, 'updateAt', query2),
+        ],
+      });
+
+      const purchasedata = purchases.map(async (purchase) => {
+        totalinv = totalinv + purchase.remainingqty * 1;
+        totalsold = totalsold + purchase.soldqty * 1;
+      });
+
+      // const pipeline = [
+      //   {
+      //     $match: {
+      //       $expr: {
+      //         $and: [
+      //           { $ne: ['$type', 'Order'] },
+      //           { $eq: ['$client', mongoose.Types.ObjectId(client.id)] },
+      //         ],
+      //       },
+      //     },
+      //   },
+      //   {
+      //     $group: {
+      //       _id: null,
+      //       sumTotal: { $sum: '$total' },
+      //     },
+      //   },
+      // ];
+
+      // const result = await Report.aggregate(pipeline);
+      // // console.log(result[0].sumTotal);
+      // // console.log(result);
+      // result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+      // console.log(totalinv, totalsold, sales, profit);
+      profitMargin = (profit / sales) * 100;
+      return {
+        asin: product.asin,
+        name: product.productname,
+        product: product.id,
+        totalsold,
+        totalinv,
+        sales,
+        profit: profitMargin,
+      };
+    })
+  );
+
+  res.status(200).json({
+    status: 'Success',
+    data: productdata,
+  });
+});
+
+exports.topprofitssourcingmanagersdata = catchAsync(async (req, res, next) => {
+  req.query.dateRange = 'lastThirtyDays';
+
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
+  // console.log(query1, query2);
+
+  const managers = await Manager.find({ role: 'Sourcing' });
+
+  const managerdata = await Promise.all(
+    managers.map(async (manager) => {
+      const specialists = await Specialist.find({ sourcemanager: manager._id });
+
+      let mtotalsold = 0;
+      let mtotalinv = 0;
+      let masin = 0;
+      let msales = 0;
+      let mprofit = 0;
+      let mprofitMargin = 0;
+
+      const specialistdata = await Promise.all(
+        specialists.map(async (specialist) => {
+          let totalsold = 0;
+          let totalinv = 0;
+          let sales = 0;
+          let profit = 0;
+          let profitMargin = 0;
+
+          const asins = await Product.countDocuments({
+            $and: [
+              { specialist: specialist.id },
+              { status: { $ne: 'Rejected' } },
+            ],
+          });
+
+          // const pendingasins = await Product.countDocuments({
+          //   $and: [
+          //     { specialist: specialist.id },
+          //     { status: { $eq: 'Pending' } },
+          //   ],
+          // });
+
+          const reports = await Report.find({
+            $and: [
+              { specialist: specialist.id },
+              { type: 'Order' },
+              ...matchDateRangeSimple(query1, 'date_time', query2),
+            ],
+          });
+
+          const reportfilter = reports.map(async (object) => {
+            sales = sales + object.total * 1;
+
+            const avgUnitCost = await Purchase.aggregate([
+              {
+                $match: {
+                  sku: object.sku,
+                  specialist: mongoose.Types.ObjectId(specialist.id),
+                  ...matchDateRangeAggregation(query1, 'updateAt', query2),
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  avgUnitCost: { $avg: '$unitCost' },
+                },
+              },
+            ]);
+            avgUnitCost.length > 0
+              ? (totalcost =
+                  avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+              : (totalcost = 0);
+            let objprofit = object.total * 1 - totalcost * 1;
+            profit = profit + objprofit;
+
+            // console.log(profit);
+          });
+
+          const purchases = await Purchase.find({
+            $and: [
+              { specialist: specialist.id },
+              ...matchDateRangeSimple(query1, 'updateAt', query2),
+            ],
+          });
+
+          const purchasedata = purchases.map(async (purchase) => {
+            totalinv = totalinv + purchase.remainingqty * 1;
+            totalsold = totalsold + purchase.soldqty * 1;
+          });
+
+          const pipeline = [
+            {
+              $match: {
+                type: { $ne: 'Order' },
+                specialist: mongoose.Types.ObjectId(specialist.id),
+                ...matchDateRangeAggregation(query1, 'date_time', query2),
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                sumTotal: { $sum: '$total' },
+              },
+            },
+          ];
+
+          const result = await Report.aggregate(pipeline);
+          // console.log(result[0].sumTotal);
+          // console.log(result);
+          result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+          // console.log(totalinv, totalsold, sales, profit);
+          profitMargin = (profit / sales) * 100;
+
+          mtotalsold = mtotalsold + totalsold;
+          mtotalinv = mtotalinv + totalinv;
+          masin = masin + asins;
+          msales = msales + sales;
+          mprofit = mprofit + profit;
+          mprofitMargin = mprofitMargin + profitMargin;
+
+          return {
+            id: specialist.id,
+            name: specialist.name,
+            asins,
+            totalsold,
+            totalinv,
+            sales,
+            profitval: profit,
+            profit: profitMargin,
+          };
+        })
+      );
+      // mprofitMargin = mprofitMargin / clientdata.length;
+      return {
+        id: manager.id,
+        name: manager.name,
+        masin,
+        mtotalsold,
+        mtotalinv,
+        msales,
+        mprofit,
+        mprofitMargin: mprofitMargin / specialistdata.length,
+      };
+    })
+  );
+
+  function getTopFiveByProfitVal(data) {
+    // Sort the array by profitval in descending order
+
+    const filteredData = data.filter((obj) => obj.mprofit !== 0);
+
+    // Sort the remaining objects by profitval in descending order
+
+    const sortedData = filteredData.sort((a, b) => b.mprofit - a.mprofit);
+
+    // Return the top 5 objects
+    return sortedData.slice(0, 5);
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    data: getTopFiveByProfitVal(managerdata),
+  });
+});
+
+exports.topprofitsallspecialists = catchAsync(async (req, res, next) => {
+  req.query.dateRange = 'lastThirtyDays';
+
+  if (!req.query.dateRange && !(req.query.startDate && req.query.endDate)) {
+    req.query.dateRange = 'all';
+  }
+
+  let query1 = '';
+  let query2 = '';
+
+  if (req.query.startDate && req.query.endDate) {
+    query1 = req.query.startDate;
+    query2 = req.query.endDate;
+  }
+
+  if (req.query.dateRange) {
+    query1 = req.query.dateRange;
+  }
+
+  // console.log(query1, query2);
+
+  const specialists = await Specialist.find();
+
+  const specialistdata = await Promise.all(
+    specialists.map(async (specialist) => {
+      let totalsold = 0;
+      let totalinv = 0;
+      let sales = 0;
+      let profit = 0;
+      let profitMargin = 0;
+
+      const asins = await Product.countDocuments({
+        $and: [{ specialist: specialist.id }, { status: { $ne: 'Rejected' } }],
+      });
+
+      // const pendingasins = await Product.countDocuments({
+      //   $and: [
+      //     { specialist: specialist.id },
+      //     { status: { $eq: 'Pending' } },
+      //   ],
+      // });
+
+      const reports = await Report.find({
+        $and: [
+          { specialist: specialist.id },
+          { type: 'Order' },
+          ...matchDateRangeSimple(query1, 'date_time', query2),
+        ],
+      });
+
+      const reportfilter = reports.map(async (object) => {
+        sales = sales + object.total * 1;
+
+        const avgUnitCost = await Purchase.aggregate([
+          {
+            $match: {
+              sku: object.sku,
+              specialist: mongoose.Types.ObjectId(specialist.id),
+              ...matchDateRangeAggregation(query1, 'updateAt', query2),
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgUnitCost: { $avg: '$unitCost' },
+            },
+          },
+        ]);
+        avgUnitCost.length > 0
+          ? (totalcost = avgUnitCost[0].avgUnitCost * 1 * object.quantity * 1)
+          : (totalcost = 0);
+        let objprofit = object.total * 1 - totalcost * 1;
+        profit = profit + objprofit;
+
+        // console.log(profit);
+      });
+
+      const purchases = await Purchase.find({
+        $and: [
+          { specialist: specialist.id },
+          ...matchDateRangeSimple(query1, 'updateAt', query2),
+        ],
+      });
+
+      const purchasedata = purchases.map(async (purchase) => {
+        totalinv = totalinv + purchase.remainingqty * 1;
+        totalsold = totalsold + purchase.soldqty * 1;
+      });
+
+      const pipeline = [
+        {
+          $match: {
+            type: { $ne: 'Order' },
+            specialist: mongoose.Types.ObjectId(specialist.id),
+            ...matchDateRangeAggregation(query1, 'date_time', query2),
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sumTotal: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const result = await Report.aggregate(pipeline);
+      // console.log(result[0].sumTotal);
+      // console.log(result);
+      result.length != 0 ? (profit = profit + result[0].sumTotal) : '';
+      // console.log(totalinv, totalsold, sales, profit);
+      profitMargin = (profit / sales) * 100;
+      return {
+        id: specialist.id,
+        name: specialist.name,
+        asins,
+        totalsold,
+        totalinv,
+        sales,
+        profitval: profit,
+        profit: profitMargin,
+      };
+    })
+  );
+
+  function getTopFiveByProfitVal(data) {
+    // Sort the array by profitval in descending order
+
+    const filteredData = data.filter((obj) => obj.profitval !== 0);
+
+    // Sort the remaining objects by profitval in descending order
+
+    const sortedData = filteredData.sort((a, b) => b.profitval - a.profitval);
+
+    // Return the top 5 objects
+    return sortedData.slice(0, 5);
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    data: getTopFiveByProfitVal(specialistdata),
   });
 });

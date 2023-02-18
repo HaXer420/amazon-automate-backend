@@ -69,4 +69,20 @@ router.get(
   ManagerController.allproductsofclient
 );
 
+/////////////// Sourcin Manager Buisness Routes
+
+router.get(
+  '/specialistsdata',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Sourcing'),
+  ManagerController.allspecialists
+);
+
+router.get(
+  '/productsdataspecialist/:id',
+  ManagersauthController.protect,
+  ManagersauthController.restrictTo('Sourcing'),
+  ManagerController.allproductsofspecialist
+);
+
 module.exports = router;
