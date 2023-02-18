@@ -8,10 +8,12 @@ const Specialist = require('../models/sourcespecialistModel');
 
 exports.checkexistingproducts = catchAsync(async (req, res, next) => {
   const product = await Product.findOne({ asin: `${req.body.asin}` });
+
+  // console.log(product);
   if (!product) next();
 
   if (product) {
-    if (product.projectedprofitmargin > req.body.projectedprofitmargin) {
+    if (product.projectedprofitmargin >= req.body.projectedprofitmargin) {
       res.status(200).json({
         status: 'Already Exist Better Product',
         better: 'no',
@@ -30,7 +32,6 @@ exports.checkexistingproducts = catchAsync(async (req, res, next) => {
       });
     }
   }
-  next();
 });
 
 exports.createProduct = catchAsync(async (req, res, next) => {
