@@ -9,6 +9,10 @@ router.route('/create').post(AdminauthController.signup);
 
 router.post('/login', AdminauthController.login);
 
+router.route('/forgotpassword').post(AdminauthController.forgotPassword);
+
+router.route('/resetpassword/:token').patch(AdminauthController.resetPassword);
+
 router.patch(
   '/updatepass',
   AdminauthController.protect,
