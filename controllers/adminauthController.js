@@ -170,7 +170,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   //   'host'
   // )}/api/v1/users/resetPassword/${resetToken}`;
 
-  const resetURL = `http://localhost:3000/reset/${resetToken}`;
+  const resetURL = `https://amazon-automation-services.vercel.app/reset/${resetToken}`;
 
   const message = `Forgot your password? submit patch request on the given link for the new password ${resetURL} \n If you dont do this please ignore this email`;
 
