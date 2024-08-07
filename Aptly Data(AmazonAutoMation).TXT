@@ -1,0 +1,20 @@
+Accounts: 
+	[ 
+		ADMIN:
+			email: massab@gmail.com   
+			password: haxer420	
+		SOURCEMANAGER: 
+			email: ali@gmail.com   
+			password: haxer420
+		ACCOUNTMANAGER:
+			email: hamza@gmail.com   
+			password: haxer420
+		SPECIALIST:
+			email: rashid@gmail.com   
+			password: haxer420
+		CLIENT:
+			email: amish@gmail.com   
+			password: haxer420
+
+]
+WebsiteLink: http://amazon-automation-services.vercel.app/
